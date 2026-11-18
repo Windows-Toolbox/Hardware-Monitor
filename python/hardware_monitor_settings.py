@@ -55,19 +55,11 @@ DEFAULT_SETTINGS = {
 OTHER_WATTS = (0, 300)               # allowed range of energy_other_watts
 PSU_EFFICIENCY = (50, 100)           # allowed range of energy_psu_efficiency
 
-# Until November 2026 some keys and values had German names – load_settings() takes them over once
-OLD_KEYS = {"effizienzmodus": "efficiency_mode"}
-OLD_VALUES = {"efficiency_mode": {"an": "on", "aus": "off"}}
 
 
 def load_settings():
     """Reads the settings; everything missing or invalid gets the default."""
-    raw = storage.load(SETTINGS_FILE, {})
     s = storage.load(SETTINGS_FILE, DEFAULT_SETTINGS)
-    for old, new in OLD_KEYS.items():
-        value = s.pop(old, None)
-        if value is not None and new not in raw:
-            s[new] = OLD_VALUES.get(new, {}).get(value, value)
     start = DEFAULT_SETTINGS
     if s["icon_interval"] not in ICON_RATES:
         s["icon_interval"] = start["icon_interval"]

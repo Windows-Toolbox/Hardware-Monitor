@@ -1,10 +1,7 @@
-> **Moved (2026-11-18):** this is the technical description of the Python part, written when it lived in the classic
-> Toolbox. Since then it lives in this repo: no `Setup.exe` and no `toolbox\` folder any more – "Set up" on the page
-> (`setup.ps1` here) creates `runtime\` and `lhm\` next to `HardwareMonitor.exe`, the data lies in its `data\`, the
-> page is `src\main.rs`. See [../README.md](../README.md). Everything about sensors, icons, the detail window, power,
-> fans and drives still holds.
+# Hardware Monitor – the Python part
 
-# Hardware Monitor
+The technical description of the monitor itself. How it is connected to the Toolbox, set up and built:
+[../README.md](../README.md).
 
 Shows CPU and GPU temperature as two numbers in the notification area of the taskbar (without a GPU temperature,
 e.g. with Intel onboard graphics, only the CPU). A click on one of the icons opens a
@@ -19,57 +16,44 @@ The sensors are read by [LibreHardwareMonitor](https://github.com/LibreHardwareM
 via pythonnet.
 
 Runs as its own program **with admin rights** (otherwise CPU and motherboard values are missing). It is operated and
-configured via its page in the Toolbox (*General → Hardware Monitor*) or by right-clicking an icon.
+configured via its page in the Toolbox (*General → Hardware Monitor*, drawn by `HardwareMonitor.exe`) or by
+right-clicking an icon.
 
 ## Files
 
 | File | Content |
 |---|---|
-| `hardware_monitor.py` | the program: reading sensors, tray icons, remote control by the Toolbox |
+| `hardware_monitor.py` | the program: reading sensors, tray icons, remote control by `HardwareMonitor.exe` |
 | `detail_window_content.py` | **what** the detail window shows (tabs, values) – this is where you adjust the window |
 | `detail_window.py` | builds the window from `detail_window_content.py` (colors, layout, traffic-light colors) |
 | `hardware_data.py` | reads the fixed data for the tab "Hardware data" via WMI; `python hardware_data.py` prints it |
-| `energy.py` | power consumption: estimate, log per hour, add up (no window code – the Toolbox page uses it too) |
+| `energy.py` | power consumption: estimate, log per hour, add up (no window code) |
 | `energy_view.py` | the tab "Power" in the detail window: tiles and bar chart |
 | `fans.py` | fan control: curves, safety rules, handing back (no window code) |
 | `fan_view.py` | the tab "Fans" in the detail window: list of fans and the curve editor |
 | `drive_view.py` | the tab "Drive health" in the detail window: status and SMART table like CrystalDiskInfo |
-| `hardware_monitor_gui.py` | page in the Toolbox: status, start/stop, autostart, settings |
-| `hardware_monitor_settings.py` | defaults, allowed values, loading and saving, number format – shared by program and page |
-| `i18n.json` | all texts in German and English – one block per ID, one line per language (see *Languages*) |
-| `program.json` | manifest: name, tab, description, version, script, starter, port, task, download of LibreHardwareMonitor |
-| `HardwareMonitor.exe` | starter (created by `Setup.exe`, not in the repo) – starts `hardware_monitor.py` without arguments |
-| `lhm/` | LibreHardwareMonitor (not in the repo, see below) |
-| `data/hardware_monitor.json` (in the main folder) | settings (created on the first save, not in the repo) |
-| `data/logs/hardware_monitor.log` (in the main folder) | errors and notes – `pythonw` has no console (not in the repo) |
-| `data/hardware_monitor_energy.json` (in the main folder) | logged power consumption per hour (only with logging on, not in the repo) |
+| `hardware_monitor_settings.py` | defaults, allowed values, loading and saving, the port, number format |
+| `storage.py` | where the data lies (`data\` next to `HardwareMonitor.exe`), loading and saving JSON |
+| `i18n.py`, `i18n.json`, `languages.json` | the texts in the chosen language – one block per ID, one line per language (see *Languages*) |
+| `setup.ps1`, `make_exe.py`, `requirements.txt` | "Set up" (see below) |
+| `../dist/lhm/` | LibreHardwareMonitor (downloaded by "Set up", not in the repo) |
+| `../dist/data/hardware_monitor.json` | settings (not in the repo) |
+| `../dist/data/monitor.log` | errors and notes – `pythonw` has no console |
+| `../dist/data/hardware_monitor_energy.json` | logged power consumption per hour (only with logging on) |
 
 ## Setup
 
-**`Setup.exe` in the repo folder** does everything (see the main README): its own Python in `runtime\`, the packages
-(`pythonnet`, `pystray`, `pillow`), the starter `HardwareMonitor.exe`, LibreHardwareMonitor 0.9.6 into `lhm\`, PawnIO
-and the scheduled task `HardwareMonitor`. By hand it would go like this:
+**"Set up"** on the page runs `setup.ps1`: its own Python in `runtime\` next to `HardwareMonitor.exe` (with the
+packages from `requirements.txt`, pinned versions, Python 3.14), `runtime\HardwareMonitorSensors.exe`,
+LibreHardwareMonitor 0.9.6 into `lhm\`, and – with one admin prompt – PawnIO (the driver for CPU and motherboard
+sensors) and the scheduled task `HardwareMonitor`. Every step checks first whether it is done already.
 
-1. **Python packages**: `pip install -r requirements.txt` in the repo folder (pinned versions, tested with Python 3.14).
-2. **PawnIO** (driver for CPU and motherboard sensors), once in an admin terminal:
-   ```
-   winget install namazso.PawnIO
-   ```
-3. **LibreHardwareMonitor**: extract `LibreHardwareMonitor.zip` (not the .NET 10 variant) from the
-   [GitHub releases](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor/releases) into `lhm\` in
-   this folder.
-4. **Autostart**: click *Set up task* in the Toolbox. That creates the scheduled task `HardwareMonitor` (name from
-   `"task"` in `program.json`), which starts the program at sign-in with admin rights – without a UAC prompt. It is
-   created disabled (Setup.exe does the same); the switch *Start automatically at sign-in* enables it. If it is
-   disabled or missing, *Start* in the Toolbox starts the program directly, and Windows asks every time.
-   Setting it up again (button, Setup.exe, update) leaves the switch as it was.
-
-**What it runs with:** task and *Start* call the starter `HardwareMonitor.exe` in this folder (without
-arguments). It starts `runtime\HardwareMonitor.exe` (`pythonw.exe` of the project Python with its own file
-description and icon, created by `setup\make_exe.py`) with `hardware_monitor.py` and exits – Task Manager then
-shows "Hardware Monitor" with the Toolbox icon instead of "Python". If the starter is missing, the Toolbox shows a hint
-to run `Setup.exe`. While the detail window is closed, the monitor appears in Task Manager under "Background
-processes" instead of "Apps" – Windows does that with every program without a visible window.
+**What it runs with:** the task starts `runtime\HardwareMonitorSensors.exe` (`pythonw.exe` of that Python with its
+own file description and icon, made by `make_exe.py`) with `hardware_monitor.py`, with admin rights and without a
+prompt. The task has no trigger: `HardwareMonitor.exe` runs it on Start, and whether the monitor starts with Windows
+is that program's "Start with Windows". Task Manager shows "Hardware Monitor" instead of "Python". While the detail
+window is closed, the monitor appears there under "Background processes" instead of "Apps" – Windows does that with
+every program without a visible window.
 
 ## Starting and checking
 
@@ -90,8 +74,9 @@ time; a second start exits right away.
   minimized, only CPU and GPU are measured for the icons – that's why the window loads briefly when it opens. Right
   after the program starts it takes longer (~10 s), because the remaining hardware is still being loaded (mainly the
   RAM).
-- **⚙ to the right of it**: opens the settings – the Hardware Monitor's page in the Toolbox. If the Toolbox isn't
-  running, it is started, as a normal program (via `explorer.exe`), even though the monitor itself has admin rights.
+- **⚙ to the right of it**: opens the settings – the Hardware Monitor's page in the Toolbox, through the pipe of
+  the Toolbox's agent. If no Toolbox runs, the window says so (a Toolbox started by this process would have admin
+  rights).
 - **Click on a value or device name** copies it to the clipboard, e.g. "2786" for the product ID or
   "G.Skill F4-3200C16-8GTZRX" for a memory module – but only directly on the text (the hand as mouse cursor shows it).
   A click on the label in front of it ("Product ID") or into the empty space next to it only selects the row. The
@@ -105,7 +90,7 @@ time; a second start exits right away.
   what is shown right now: "⧉ Copy" on the right of every category row (Processor, Graphics card, …) the category,
   "Copy all" at the top all categories – in the overview one line per category, below it every device with a tab
   in front; in the details as text with computer name and date, e.g. for pasting into a forum.
-- **Privacy mode** (☐/☑ left of "● Live", in the right-click menu of the icons and on the Toolbox page): hides
+- **Privacy mode** (☐/☑ left of "● Live", in the right-click menu of the icons and on the page): hides
   serial numbers, MAC addresses, the processor ID and the computer name – in the list, in the footer and when
   copying they appear as `████████`, e.g. for screenshots or forum posts. The window title then only says "Hardware
   Monitor" instead of the program path (which can contain the Windows user name). The real values stay in memory;
@@ -127,7 +112,7 @@ time; a second start exits right away.
 
 ## Settings
 
-Saved in `data\hardware_monitor.json`. The Toolbox writes the file and then sends `reload`; the running program
+Saved in `data\hardware_monitor.json`. `HardwareMonitor.exe` (the page) writes the file and then sends `reload`; the running program
 takes over the values right away. Missing or invalid values get the default.
 
 | Key | Default | Meaning |
@@ -141,17 +126,16 @@ takes over the values right away. Missing or invalid values get the default.
 | `efficiency_mode` | `"auto"` | Windows 11 efficiency mode: `auto` = only while the window is closed, `on` = always, `off` = never |
 | `window` | `""` | size and position of the detail window (set by the window itself) |
 | `privacy_mode` | `false` | privacy mode: hide serial numbers, MAC addresses, processor ID and computer name |
-| `energy_logging` | `false` | log the power consumption (switch on the Toolbox page) |
+| `energy_logging` | `false` | log the power consumption (switch on the page) |
 | `energy_price` / `energy_currency` | `0.35` / `"€"` | price per kWh (an average – no dynamic prices) and its currency |
 | `energy_other_watts` | `40` | estimated power of everything except CPU and graphics card (0–300 W) |
 | `energy_psu_efficiency` | `87` | efficiency of the power supply in % (50–100) |
 | `fan_control` | `{}` | per fan (LHM ID): `mode` (`auto`/`curve`/`fixed`), `source` (`gpu`/`cpu`/`max`), `curve` (`[[°C, %], …]`, 2–8 points), `fixed` (%) – missing = `auto` |
 
-Defaults, allowed values and the check when loading are in `hardware_monitor_settings.py` – monitor and Toolbox
-page both use this file. The Toolbox page only writes the values that were changed on it – the monitor changes some
-itself (rates and privacy mode in the right-click menu, window position), and an older state shown on the page must
-not overwrite them. Until November 2026 some keys had German names (`effizienzmodus` with `an`/`aus`);
-`load_settings()` takes them over once.
+Defaults, allowed values and the check when loading are in `hardware_monitor_settings.py` (and a second time in
+`src\main.rs`; a test checks that both agree). The page only writes the values that were changed on it – the monitor
+changes some itself (rates and privacy mode in the right-click menu, window position), and an older state shown on
+the page must not overwrite them.
 
 ## Adjusting the detail window
 
@@ -183,7 +167,8 @@ Tab("tab.gpu",
 
 ## Languages
 
-All texts – Toolbox page, right-click menu, detail window, explanations, hardware data – are in `i18n.json`: one
+All texts of the monitor – right-click menu, detail window, explanations, hardware data – are in `i18n.json` (the
+page's texts are in `..\assets\i18n.json`): one
 block per ID, in it every language on its own line:
 
 ```json
@@ -196,14 +181,11 @@ block per ID, in it every language on its own line:
 The code only contains the ID: `t("page.status.running")`; placeholders like `{task}` are filled by `t("…", task=…)`.
 If a translation is missing, the English text comes, if that is missing too, the ID itself (once per ID in the log) –
 so nothing crashes. New texts are only added in English for now; the German interface then shows them in English.
-New language: add a line in `toolbox\languages.json` (`"fr": "Français"`) and here a line in every block
-(`"fr": "…"`). The FR button in the Toolbox and the radio button "Français (FR)" in the setup window are both built
-from it, and a Windows in this language preselects it automatically.
+New language: add a line in `languages.json` (`"fr": "Français"`) and here a line in every block (`"fr": "…"`).
 
-Which language applies is in `data\toolbox.json` (`"language"`) – chosen in the setup window or in the Toolbox under
-⚙ → *Appearance* (DE / EN). Without an entry the Windows display language applies if it exists (otherwise English). A
-click on DE/EN takes effect right away: the Toolbox rebuilds the page and sends the running monitor `reload` – the
-right-click menu, tooltips and an open detail window switch right away. Sensor names from LibreHardwareMonitor
+Which language applies is the Toolbox's: `HardwareMonitor.exe` writes it into `data\hardware_monitor.json`
+(`"language"`) and sends `reload` when it changes – the right-click menu, tooltips and an open detail window switch
+right away. Without an entry the Windows display language applies if it exists (otherwise English). Sensor names from LibreHardwareMonitor
 ("CPU Package") stay English. Numbers and dates follow the language (`num()`, `fmt_date()` in
 `hardware_monitor_settings.py`): English 2.5 and 2021-03-03, German 2,5 and 03.03.2021.
 
@@ -220,23 +202,22 @@ wall socket is **estimated** (`energy.py`):
   (`GPU Board Power`, `GPU Package`, …). Graphics in the processor (Intel UHD/Iris, AMD "Radeon(TM) Graphics") is
   skipped – its power is already part of the CPU package (`integrated_gpu()`).
 - **Other components** (motherboard, RAM, drives, fans, USB devices) and the **efficiency** are fixed values from the
-  Toolbox page – about 30–60 W and 85–90 % for a desktop PC. With an energy meter at the socket you can calibrate
+  page – about 30–60 W and 85–90 % for a desktop PC. With an energy meter at the socket you can calibrate
   "Other components" until "Now" matches.
 - **Laptop on battery**: the battery's discharge rate is what the whole laptop draws – then that measured value is
   used ("Now" without "≈").
 
-With **Log power consumption** switched on (Toolbox page), every measurement (`icon_interval`, with the window open
+With **Log power consumption** switched on (page), every measurement (`icon_interval`, with the window open
 `popup_interval`) adds watts × seconds to its hour in `data\hardware_monitor_energy.json` – saved every 5 minutes
 and when quitting, about 300 KB per year. Only while the monitor runs; gaps longer than 30 s (sleep) don't count.
-Costs = kWh × price, calculated when shown. *Delete all saved data* on the Toolbox page asks first, then deletes the
+Costs = kWh × price, calculated when shown. *Delete all saved data* on the page asks first, then deletes the
 file (and, if the monitor is running, its values in memory via `energy_delete`). *Show chart* opens the detail
-window on the tab "Power" (`show_power`). The Toolbox page shows a summary (today, this month, in total) from the
-running monitor or, if it isn't running, from the file.
+window on the tab "Power" (`show_power`). The page shows the power from the running monitor.
 
 ## Fan control
 
 Curves for the graphics card fans and the motherboard fan headers, set in the detail window, tab **Fans** (the
-Toolbox page has a button for it and explains the safety rules). LibreHardwareMonitor does the actual controlling:
+page has a button for it and explains the safety rules). LibreHardwareMonitor does the actual controlling:
 `sensor.Control.SetSoftware(%)` takes a fan over, `SetDefault()` hands it back. What it can control depends on the
 hardware – on the developer's PC the RTX 4060 Ti (both fans together) and the five headers of the motherboard chip
 (Nuvoton NCT6779D); the motherboard headers need admin rights (PawnIO), like their sensors.
@@ -256,7 +237,7 @@ hardware – on the developer's PC the RTX 4060 Ti (both fans together) and the 
 Safety (`fans.py`):
 
 - Only fans switched to *Curve* or *Fixed* are touched.
-- From the **red limit** of the traffic light (`gpu_hot_temp` / `cpu_hot_temp`, Toolbox page) on, a controlled fan
+- From the **red limit** of the traffic light (`gpu_hot_temp` / `cpu_hot_temp`, page) on, a controlled fan
   runs at **100 %** (shaded red in the editor).
 - Without a temperature (sensor gone) or if setting fails, the fan is handed back.
 - **Hysteresis** of 3 °C: a fan only slows down again once the temperature has dropped 3 °C below the value at
@@ -267,7 +248,7 @@ Safety (`fans.py`):
   fan keep its last speed until Windows restarts; the hardware then protects itself by throttling. The file
   `data\hardware_monitor_fans.active` exists while fans are controlled – if it is still there at the next start,
   the tab shows a warning.
-- *Reset everything* on the Toolbox page sets all fans back to *Auto*.
+- *Reset everything* on the page sets all fans back to *Auto*.
 
 ## Drive health
 
@@ -311,7 +292,7 @@ for freshly plugged-in USB devices); until then the old data stays.
 
 ## Remote control (IPC)
 
-The Toolbox runs without admin rights and therefore can't simply end the program. Instead it listens on
+`HardwareMonitor.exe` runs without admin rights and therefore can't simply end the program. Instead the monitor listens on
 `127.0.0.1:47815` (only reachable from this PC) for one command per connection; the answer is one JSON line:
 
 | Command | Answer / effect |
@@ -327,7 +308,7 @@ The Toolbox runs without admin rights and therefore can't simply end the program
 `status` also contains `"power"` (watts now, or `null` while nothing is measured) and `"energy"` (totals: today,
 month, year, all as `[Wh, seconds]`, and `"since"`).
 
-The port is `"port"` in `program.json`; monitor, Toolbox page and `setup.ps1` read it from there.
+The port is `IPC_PORT` in `hardware_monitor_settings.py` and `PORT` in `src\main.rs`.
 
 ## Economy
 
@@ -338,7 +319,7 @@ The port is `"port"` in `program.json`; monitor, Toolbox page and `setup.ps1` re
   ~50 CPU sensors one by one via pythonnet. The sensor is searched once and then queried directly.
 - **Windows 11 efficiency mode**: while the window is closed the program runs in efficiency mode (leaf symbol in
   Task Manager: scheduled power-efficiently, lowest priority), with the window open normally. Configurable in the
-  Toolbox (*Refresh → Efficiency mode*: Automatic / Always on / Off; the "i" next to it explains the three). If it is
+  page (*Refresh → Efficiency mode*: Automatic / Always on / Off). If it is
   switched by hand in Task Manager, the program sets its mode again the next time the window opens or closes.
 - **No GPU icon without a GPU temperature**: at the start `gpu_has_temperature()` checks whether there is a GPU
   temperature (Nvidia via NVML or any temperature sensor of a GPU in LHM). If not, the GPU icon is left out, and the
@@ -355,16 +336,15 @@ The port is `"port"` in `program.json`; monitor, Toolbox page and `setup.ps1` re
 - **CPU shows `--` or is missing**: the program runs without admin rights, or PawnIO isn't installed.
 - **No GPU icon**: the graphics has no temperature sensor – normal with Intel onboard graphics (e.g. Iris Xe)
   (the log says so too).
-- **Task Manager still shows "Python" or the Python logo**: run `Setup.exe` again (it recreates the `.exe` files and
-  lets Windows read name and icon again), then close Task Manager completely and open it again – an open one keeps
-  what it loaded once.
+- **Task Manager still shows "Python" or the Python logo**: close Task Manager completely and open it again – an
+  open one keeps what it loaded once.
 - **A tab shows "No matching sensors"**: the hardware names its sensors differently; `--list` shows the names,
   which are then added in `detail_window_content.py`.
-- **Doesn't start at all**: look at `data\logs\hardware_monitor.log` (Toolbox: *Advanced → Open log*). Often `lhm\`
+- **Doesn't start at all**: look at `data\monitor.log` (Toolbox: *Open folder*). Often `lhm\`
   is missing or it's the .NET 10 variant of LHM.
 - **Toolbox shows "Stopped" although the icons are there**: port 47815 was taken at the start; the program tries
   again every 2 s (the log says so too).
 - **Tab "Hardware data" stays empty**: errors of the WMI queries are in the log; `python hardware_data.py` shows
   what Windows delivers.
-- **Task starts an old copy**: the Toolbox warns if the task doesn't point to `HardwareMonitor.exe` in this folder
-  (e.g. after moving the folder); *Update task* or `Setup.exe` switches it over.
+- **Task starts an old copy**: the page warns if the task doesn't point to this copy (e.g. after moving the
+  folder); *Set up* switches it over.

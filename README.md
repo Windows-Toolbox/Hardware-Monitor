@@ -30,9 +30,7 @@ The settings are on the page; the refresh rates and the privacy mode can also be
 the icons. Which values the detail window shows is in `python\detail_window_content.py`.
 
 What is yours lies in `dist\data\`: `hardware_monitor.json` (the monitor's settings, window position, fan curves),
-`hardware_monitor_energy.json` (the power log), `monitor.log`, and `settings.json` / `log.txt` of the page. The
-classic Toolbox's files (`Toolbox\data\hardware_monitor*.json`) are carried over at the first start, and if its
-task started the monitor at sign-in, "Start with Windows" is switched on.
+`hardware_monitor_energy.json` (the power log), `monitor.log`, and `settings.json` / `log.txt` of the page.
 
 ## How it fits together
 
@@ -61,13 +59,13 @@ puts exe, manifest, README and `python\` into the zip (not `runtime\`, `lhm\`, `
 
 | Path | What |
 |---|---|
-| `src/main.rs` | the page, Start/Stop, the status, the settings file both ways, "Set up", carrying over the classic Toolbox's files |
+| `src/main.rs` | the page, Start/Stop, the status, the settings file both ways, "Set up" |
 | `assets/` | `i18n.json` (the page's texts), `icon.ico` |
 | `python/hardware_monitor.py` | the monitor: sensors, tray icons, remote control (port 47815) |
 | `python/detail_window.py`, `detail_window_content.py` | the detail window and what it shows |
 | `python/energy.py`, `fans.py`, `*_view.py`, `hardware_data.py` | power, fan control, their tabs, hardware data |
 | `python/hardware_monitor_settings.py` | defaults and checks of the settings, port, texts |
-| `python/storage.py`, `i18n.py`, `languages.json` | where the data lies, texts in the chosen language (once part of the classic Toolbox) |
+| `python/storage.py`, `i18n.py`, `languages.json` | where the data lies, texts in the chosen language |
 | `python/setup.ps1`, `make_exe.py`, `requirements.txt` | "Set up": runtime, packages, the sensors' exe, LibreHardwareMonitor, PawnIO, task |
 | `python/README.md` | the technical description of the Python part |
 
@@ -75,14 +73,12 @@ puts exe, manifest, README and `python\` into the zip (not `runtime\`, `lhm\`, `
 
 ✓ checked, ◐ built, not checked by hand yet.
 
-- ✓ Tests: page keys, texts, defaults equal to the Python part's, the settings file both ways, carrying over
+- ✓ Tests: page keys, texts, defaults equal to the Python part's, the settings file both ways
 - ✓ Set up steps 1–4 (runtime, packages, sensors' exe, LibreHardwareMonitor) on the developer PC; `--list` reads the sensors
 - ✓ The page in a sandbox Toolbox
-- ✓ Hand test 2026-11-18: Set up with the admin prompt (replaces the classic task), Start / Stop from the Toolbox,
-  status line, page changes reach the running monitor and right-click menu changes reach the page, chart, fan
-  control, gear in the detail window, carrying over the classic Toolbox's settings
-- ◐ "Set up" removes the classic task's logon trigger (found after the hand test: registering over the old task kept
-  it – the page now says so; one more "Set up" fixes it)
+- ✓ Hand test 2026-11-18: Set up with the admin prompt, Start / Stop from the Toolbox, status line, page changes
+  reach the running monitor and right-click menu changes reach the page, chart, fan control, gear in the detail
+  window
 
 ## Later
 

@@ -21,10 +21,11 @@ Usage:
 Economical in the background: as long as the window is closed, only CPU and GPU are read, the GPU temperature of
 Nvidia cards directly via nvml.dll instead of LHM (a fraction of the effort). At the start only CPU and GPU are
 opened first so that the icons are there right away; the remaining hardware loads afterwards in the background.
-The refresh rates can be set by right-clicking an icon; all other settings via the Toolbox GUI. Saved in
-data/hardware_monitor.json. The GUI controls the program via a local connection (127.0.0.1, port IPC_PORT).
+The refresh rates can be set by right-clicking an icon; all other settings on its page in the Toolbox. Saved in
+data/hardware_monitor.json. HardwareMonitor.exe controls the program via a local connection (127.0.0.1, port
+IPC_PORT).
 
-Errors end up in data/logs/hardware_monitor.log (pythonw has no console).
+Errors end up in data/monitor.log (pythonw has no console).
 """
 
 import ctypes
@@ -39,7 +40,7 @@ import threading
 import time
 from pathlib import Path
 
-sys.dont_write_bytecode = True                              # don't create __pycache__ folders (like the Toolbox)
+sys.dont_write_bytecode = True                              # don't create __pycache__ folders
 sys.path.insert(0, str(Path(__file__).resolve().parent))    # find detail_window – also when started with python -m
 from detail_window import ICON_FILE, SENSOR_TYPES, DetailWindow, fmt_value, temp_color  # noqa: E402
 # Defaults, rates, port, loading/saving – shared with the page in the Toolbox
@@ -865,7 +866,7 @@ class HardwareMonitorApp:
             pc.Close()
             nvidia.close()
 
-    # --- Remote control by the Toolbox GUI ---
+    # --- Remote control by HardwareMonitor.exe ---
     def ipc_server(self):
         """Waits for commands from the GUI: "status", "reload" or "quit" (one command per connection).
 

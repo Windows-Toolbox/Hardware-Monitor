@@ -8,9 +8,9 @@ WHAT the window shows is in detail_window_content.py – that's the only place y
               Value("GPU Core", type="Temperature"),
               Value("GPU Fan *", type="Fan")))
 
-This file builds the window from it and normally doesn't need to be touched – like base.py for the Toolbox.
+This file builds the window from it and normally doesn't need to be touched.
 Changes to detail_window_content.py are picked up the next time the window opens (no restart needed).
-All texts are in i18n.json – only their ID is here: t("window.…") (see toolbox\\i18n.py).
+All texts are in i18n.json – only their ID is here: t("window.…") (see i18n.py).
 """
 
 import ctypes
@@ -385,7 +385,7 @@ def dark_title_bar(window):
 
 
 # ---------- The window ----------
-# the same colors as the dark Toolbox (toolbox/base.py) – the window uses ttk instead of CustomTkinter
+# dark colors, set by hand – the window uses ttk
 BG, BG_LIST, FG, SUB, HOVER, ACCENT = "#0a1d2c", "#152736", "#e2e8f0", "#8fa3b8", "#213443", "#3ddc97"
 SELECTED = "#1d4f47"             # selected rows (like selected entries in the Toolbox)
 FONT, FONT_GROUP = ("Segoe UI", 9), ("Segoe UI Semibold", 10)       # rows and device names

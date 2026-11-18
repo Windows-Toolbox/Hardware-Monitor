@@ -47,10 +47,6 @@
     "de": "{what}: zeigt auf einen anderen Ort ({target}) – „Einrichten“ stellt sie hierher um",
     "en": "{what}: points elsewhere ({target}) – \"Set up\" points it here"
   },
-  "page.setup.at_logon": {
-    "de": "{what}: startet die Sensoren noch selbst beim Anmelden (von der klassischen Toolbox) – „Einrichten“ entfernt das",
-    "en": "{what}: still starts the sensors at sign-in by itself (from the classic Toolbox) – \"Set up\" removes that"
-  },
   "page.setup.checking": {
     "de": "Prüfe die Einrichtung …",
     "en": "Checking the setup …"

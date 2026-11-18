@@ -13,7 +13,7 @@
 //! monitor's file and followed by "reload"; a change the monitor makes itself (rates and privacy mode in its
 //! right-click menu) is noticed by the file's time and taken over. The Toolbox's language goes the same way.
 //!
-//! A full port to Rust is planned (Toolbox\DESIGN.md 10, M4); until then this keeps the classic Toolbox unneeded.
+//! A full port to Rust is planned (Toolbox\DESIGN.md 10, 11 – M4).
 #![windows_subsystem = "windows"]
 
 use std::io::{BufRead, BufReader, Write};
@@ -238,11 +238,8 @@ fn sensors_exe() -> PathBuf {
 enum TaskState {
     #[default]
     Missing,
-    /// Points to another exe or script – the classic Toolbox's task, or a moved folder.
+    /// Points to another exe or script – a moved folder.
     Elsewhere(String),
-    /// Points here, but still starts the sensors at logon by itself (the classic Toolbox's trigger, kept by an
-    /// older "Set up") – then "Start with Windows" off would not keep them off.
-    AtLogon,
     Here,
 }
 
@@ -254,14 +251,11 @@ struct Setup {
     lhm: bool,
     pawnio: bool,
     task: TaskState,
-    /// The task starts at logon (the classic Toolbox's autostart).
-    task_at_logon: bool,
-    task_enabled: bool,
 }
 
 impl Setup {
     fn ready(&self) -> bool {
-        self.runtime && self.lhm && self.pawnio && matches!(self.task, TaskState::Here | TaskState::AtLogon)
+        self.runtime && self.lhm && self.pawnio && self.task == TaskState::Here
     }
 }
 
@@ -272,7 +266,7 @@ fn check_setup() -> Setup {
         "$t = Get-ScheduledTask -TaskName '{TASK}' -ErrorAction SilentlyContinue; \
          $r = @{{ pawnio = [bool](Get-Service PawnIO -ErrorAction SilentlyContinue) }}; \
          if ($t) {{ $r.execute = $t.Actions[0].Execute; $r.arguments = $t.Actions[0].Arguments; \
-         $r.state = \"$($t.State)\"; $r.triggers = @($t.Triggers).Count }}; $r | ConvertTo-Json -Compress"
+         }}; $r | ConvertTo-Json -Compress"
     );
     let out = hidden("powershell.exe").args(["-NoProfile", "-NonInteractive", "-Command", &script]).stderr(Stdio::null()).output();
     let info: Value = out.ok().and_then(|o| serde_json::from_slice(&o.stdout).ok()).unwrap_or_default();
@@ -282,7 +276,7 @@ fn check_setup() -> Setup {
     let task = if exe.is_empty() {
         TaskState::Missing
     } else if same_path(Path::new(exe), &sensors_exe()) && arguments.trim().trim_matches('"') == script.to_string_lossy() {
-        if info["triggers"].as_u64().unwrap_or(0) > 0 { TaskState::AtLogon } else { TaskState::Here }
+        TaskState::Here
     } else {
         TaskState::Elsewhere(format!("{exe} {arguments}").trim().to_string())
     };
@@ -292,8 +286,6 @@ fn check_setup() -> Setup {
         lhm: home.join("lhm").join("LibreHardwareMonitorLib.dll").exists(),
         pawnio: info["pawnio"].as_bool().unwrap_or(false),
         task,
-        task_at_logon: info["triggers"].as_u64().unwrap_or(0) > 0,
-        task_enabled: info["state"].as_str().is_some_and(|s| s != "Disabled"),
     }
 }
 
@@ -421,7 +413,6 @@ impl Monitor {
             let task = t!("page.setup.task", task = TASK);
             match &s.task {
                 TaskState::Elsewhere(target) => p.status(t!("page.setup.elsewhere", what = task, target = target), Health::Warn),
-                TaskState::AtLogon => p.status(t!("page.setup.at_logon", what = task), Health::Warn),
                 other => line(p, task, *other == TaskState::Here),
             }
         }
@@ -468,7 +459,7 @@ impl Program for Monitor {
             let sensors = |known: &[&str], current: &str| {
                 let mut v = vec![("auto".to_string(), t!("page.automatic"))];
                 v.extend(known.iter().map(|n| (n.to_string(), n.to_string())));
-                // A name typed in the classic Toolbox or the file stays choosable.
+                // A name typed into the file stays choosable.
                 if current != "auto" && !known.contains(&current) {
                     v.push((current.to_string(), current.to_string()));
                 }
@@ -731,53 +722,9 @@ fn work(rt: Runtime<Monitor>) {
     }
 }
 
-// ---------- from the classic Toolbox ----------
-
-/// On the very first start (no `data\hardware_monitor.json` yet): the classic Toolbox's files are carried over
-/// once – settings, power log – if one lies in a folder above. Its task started the monitor at logon; that
-/// becomes this program's "Start with Windows".
-fn carry_over(program_dir: &Path, data: &Path) -> Option<Settings> {
-    if data.join(MONITOR_FILE).exists() {
-        return None;
-    }
-    for above in program_dir.ancestors().skip(1).take(4) {
-        let old = above.join("Toolbox").join("data");
-        let old = if old.join(MONITOR_FILE).exists() { old } else { above.join("data") };
-        if !old.join(MONITOR_FILE).exists() {
-            continue;
-        }
-        let _ = std::fs::create_dir_all(data);
-        for name in [MONITOR_FILE, ENERGY_FILE] {
-            if old.join(name).exists() {
-                let _ = std::fs::copy(old.join(name), data.join(name));
-            }
-        }
-        app::log(&format!("settings carried over from {}", old.display()));
-        return Some(import(&Settings::default(), &data.join(MONITOR_FILE)));
-    }
-    None
-}
-
 fn main() {
     kit::texts!();
     app::init(&Monitor::META);
-    let data = app::data_dir();
-    if let Some(old) = carry_over(&app::program_dir(), &data) {
-        // The page's file gets the carried-over values before the kit reads it.
-        if !data.join("settings.json").exists() {
-            if let Ok(Value::Object(m)) = serde_json::to_value(&old) {
-                let _ = write_json(&data.join("settings.json"), &m);
-            }
-        }
-        // The classic task started the monitor at logon: "Start with Windows" takes that over.
-        let setup = check_setup();
-        if setup.task_at_logon && setup.task_enabled {
-            if let Ok(exe) = std::env::current_exe() {
-                let _ = kit::autostart::set(Monitor::META.id, Some(&exe));
-                app::log("the classic task started the monitor at logon – \"Start with Windows\" is on");
-            }
-        }
-    }
     let mut monitor = Monitor::new();
     monitor.seen = modified(&monitor_file());
     app::run(monitor, work);
@@ -891,20 +838,5 @@ mod tests {
         let mut s = Settings::default();
         assert_eq!(m.action("delete_power", &mut s), None);
         assert!(page(&m, &s).contains("Really delete"));
-    }
-
-    #[test]
-    fn the_classic_toolbox_s_files() {
-        let root = temp("carry");
-        let (program, data) = (root.join("Hardware Monitor").join("dist"), root.join("Hardware Monitor").join("dist").join("data"));
-        std::fs::create_dir_all(root.join("Toolbox").join("data")).unwrap();
-        std::fs::create_dir_all(&program).unwrap();
-        std::fs::write(root.join("Toolbox/data").join(MONITOR_FILE), r#"{"privacy_mode": true, "energy_price": 0.31, "window": "1x1+0+0"}"#).unwrap();
-        std::fs::write(root.join("Toolbox/data").join(ENERGY_FILE), "{}").unwrap();
-        let s = carry_over(&program, &data).unwrap();
-        assert!(s.privacy_mode && s.energy_price == "0.31");
-        assert!(data.join(ENERGY_FILE).exists() && read_json(&data.join(MONITOR_FILE))["window"] == "1x1+0+0");
-        assert!(carry_over(&program, &data).is_none(), "never a second time");
-        std::fs::remove_dir_all(&root).ok();
     }
 }

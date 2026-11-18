@@ -24,7 +24,7 @@ import threading
 import time
 from datetime import datetime, timedelta
 
-from hardware_monitor_settings import num    # first: it adds toolbox\ to the path, where storage.py lives
+from hardware_monitor_settings import num    # first: it adds this folder to the path, where storage.py lives
 import storage  # noqa: E402
 
 FILE = storage.settings_file("hardware_monitor_energy")
