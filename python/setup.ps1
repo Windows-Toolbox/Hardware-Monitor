@@ -62,9 +62,10 @@ if ($Admin) {
             $principal = New-ScheduledTaskPrincipal -UserId $user -LogonType Interactive -RunLevel Highest
             $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
                 -ExecutionTimeLimit ([TimeSpan]::Zero) -MultipleInstances IgnoreNew
-            # Replaces the task of the classic Toolbox (same name, it started at logon and pointed elsewhere).
-            Register-ScheduledTask -TaskName $TaskName -Action $action -Principal $principal -Settings $settings `
-                -Force | Out-Null
+            # Replaces the task of the classic Toolbox (same name, it started at logon and pointed elsewhere). Deleted
+            # first: registering over it with -Force keeps its logon trigger.
+            Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false -ErrorAction SilentlyContinue
+            Register-ScheduledTask -TaskName $TaskName -Action $action -Principal $principal -Settings $settings | Out-Null
             Ok 'set up'
         }
         exit 0

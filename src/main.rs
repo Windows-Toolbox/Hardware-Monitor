@@ -240,6 +240,9 @@ enum TaskState {
     Missing,
     /// Points to another exe or script – the classic Toolbox's task, or a moved folder.
     Elsewhere(String),
+    /// Points here, but still starts the sensors at logon by itself (the classic Toolbox's trigger, kept by an
+    /// older "Set up") – then "Start with Windows" off would not keep them off.
+    AtLogon,
     Here,
 }
 
@@ -258,7 +261,7 @@ struct Setup {
 
 impl Setup {
     fn ready(&self) -> bool {
-        self.runtime && self.lhm && self.pawnio && self.task == TaskState::Here
+        self.runtime && self.lhm && self.pawnio && matches!(self.task, TaskState::Here | TaskState::AtLogon)
     }
 }
 
@@ -279,7 +282,7 @@ fn check_setup() -> Setup {
     let task = if exe.is_empty() {
         TaskState::Missing
     } else if same_path(Path::new(exe), &sensors_exe()) && arguments.trim().trim_matches('"') == script.to_string_lossy() {
-        TaskState::Here
+        if info["triggers"].as_u64().unwrap_or(0) > 0 { TaskState::AtLogon } else { TaskState::Here }
     } else {
         TaskState::Elsewhere(format!("{exe} {arguments}").trim().to_string())
     };
@@ -418,6 +421,7 @@ impl Monitor {
             let task = t!("page.setup.task", task = TASK);
             match &s.task {
                 TaskState::Elsewhere(target) => p.status(t!("page.setup.elsewhere", what = task, target = target), Health::Warn),
+                TaskState::AtLogon => p.status(t!("page.setup.at_logon", what = task), Health::Warn),
                 other => line(p, task, *other == TaskState::Here),
             }
         }
@@ -446,7 +450,7 @@ impl Program for Monitor {
             }
         });
         // Open until everything is there; then it only takes room.
-        if self.setup.ready() {
+        if self.setup.ready() && self.setup.task == TaskState::Here {
             p.section_closed(t!("page.setup"), |p| self.setup_section(p));
         } else {
             p.section(t!("page.setup"), |p| self.setup_section(p));

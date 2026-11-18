@@ -78,8 +78,13 @@ puts exe, manifest, README and `python\` into the zip (not `runtime\`, `lhm\`, `
 - ✓ Tests: page keys, texts, defaults equal to the Python part's, the settings file both ways, carrying over
 - ✓ Set up steps 1–4 (runtime, packages, sensors' exe, LibreHardwareMonitor) on the developer PC; `--list` reads the sensors
 - ✓ The page in a sandbox Toolbox
-- ◐ Set up step 5 (PawnIO, task – admin prompt), replacing the classic task
-- ◐ Start / Stop from the Toolbox, status line, "Start with Windows"
-- ◐ Page changes reach the running monitor; right-click menu changes reach the page; language switch
-- ◐ Show chart / fan control / delete power data from the page; gear in the detail window
-- ◐ Carrying over the classic Toolbox's settings, power log and autostart
+- ✓ Hand test 2026-11-18: Set up with the admin prompt (replaces the classic task), Start / Stop from the Toolbox,
+  status line, page changes reach the running monitor and right-click menu changes reach the page, chart, fan
+  control, gear in the detail window, carrying over the classic Toolbox's settings
+- ◐ "Set up" removes the classic task's logon trigger (found after the hand test: registering over the old task kept
+  it – the page now says so; one more "Set up" fixes it)
+
+## Later
+
+- **Fans tab**: choosing the fans and filtering them with the CPU / GPU buttons feels odd (hand test 2026-11-18) –
+  rethink with the user before changing it.
