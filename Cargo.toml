@@ -2,6 +2,7 @@
 name = "hardware-monitor"
 version = "2.0.0"
 edition = "2024"
+license = "MIT"
 publish = false
 description = "CPU and GPU temperature in the taskbar; a click on an icon shows almost all hardware values – plus power consumption, fan curves and drive health."
 repository = "https://github.com/Windows-Toolbox/Hardware-Monitor"
