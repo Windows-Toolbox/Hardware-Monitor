@@ -1,0 +1,290 @@
+{
+  "page.status": {
+    "de": "Status",
+    "en": "Status"
+  },
+  "page.stopped": {
+    "de": "Gestoppt – „Starten“ oben startet die Sensoren (mit Adminrechten über die Aufgabe, ohne Nachfrage).",
+    "en": "Stopped – \"Start\" above starts the sensors (with admin rights through the task, without asking)."
+  },
+  "page.order.hint": {
+    "de": "Die neue Reihenfolge gilt nach „Stoppen“ und „Starten“.",
+    "en": "The new order takes effect after Stop and Start."
+  },
+  "page.setup": {
+    "de": "Einrichtung",
+    "en": "Setup"
+  },
+  "page.setup.text": {
+    "de": "Der Monitor braucht ein eigenes Python (runtime\\), LibreHardwareMonitor (lhm\\), den Treiber PawnIO und eine Aufgabe in der Aufgabenplanung, die die Sensoren mit Adminrechten startet. „Einrichten“ öffnet ein Fenster, erledigt, was fehlt, und fragt dabei einmal nach Adminrechten. Ob der Monitor mit Windows startet, stellst du oben mit „Mit Windows starten“ ein.",
+    "en": "The monitor needs its own Python (runtime\\), LibreHardwareMonitor (lhm\\), the driver PawnIO and a task in Task Scheduler that starts the sensors with admin rights. \"Set up\" opens a window, does what is missing and asks for admin rights once. Whether the monitor starts with Windows is the switch \"Start with Windows\" above."
+  },
+  "page.setup.runtime": {
+    "de": "Python in runtime\\",
+    "en": "Python in runtime\\"
+  },
+  "page.setup.lhm": {
+    "de": "LibreHardwareMonitor in lhm\\",
+    "en": "LibreHardwareMonitor in lhm\\"
+  },
+  "page.setup.pawnio": {
+    "de": "Treiber PawnIO",
+    "en": "Driver PawnIO"
+  },
+  "page.setup.task": {
+    "de": "Aufgabe „{task}“",
+    "en": "Task \"{task}\""
+  },
+  "page.setup.there": {
+    "de": "{what}: da",
+    "en": "{what}: there"
+  },
+  "page.setup.missing": {
+    "de": "{what}: fehlt",
+    "en": "{what}: missing"
+  },
+  "page.setup.elsewhere": {
+    "de": "{what}: zeigt auf einen anderen Ort ({target}) – „Einrichten“ stellt sie hierher um",
+    "en": "{what}: points elsewhere ({target}) – \"Set up\" points it here"
+  },
+  "page.setup.checking": {
+    "de": "Prüfe die Einrichtung …",
+    "en": "Checking the setup …"
+  },
+  "page.setup.running": {
+    "de": "Einrichten läuft – siehe das Fenster dazu",
+    "en": "Setting up – see its window"
+  },
+  "page.setup.button": {
+    "de": "Einrichten",
+    "en": "Set up"
+  },
+  "page.setup.again": {
+    "de": "Neu prüfen",
+    "en": "Check again"
+  },
+  "page.refresh": {
+    "de": "Aktualisierung",
+    "en": "Refresh"
+  },
+  "page.refresh.text": {
+    "de": "Wie oft gemessen wird. Seltener = sparsamer. Die Symbole lesen nur CPU und GPU, das offene Detailfenster die Geräte des gewählten Tabs.",
+    "en": "How often values are measured. Less often = more efficient. The icons only read CPU and GPU, the open detail window reads the devices of the selected tab."
+  },
+  "page.refresh.icons": {
+    "de": "Taskleisten-Symbole",
+    "en": "Taskbar icons"
+  },
+  "page.refresh.window": {
+    "de": "Detailfenster",
+    "en": "Detail window"
+  },
+  "page.automatic": {
+    "de": "Automatisch",
+    "en": "Automatic"
+  },
+  "page.efficiency": {
+    "de": "Effizienzmodus",
+    "en": "Efficiency mode"
+  },
+  "page.efficiency.on": {
+    "de": "Immer an",
+    "en": "Always on"
+  },
+  "page.efficiency.off": {
+    "de": "Aus",
+    "en": "Off"
+  },
+  "page.efficiency.info": {
+    "de": "Effizienzmodus von Windows 11 (grünes Blatt im Task-Manager). Automatisch: an, solange das Detailfenster zu ist. Immer an: auch bei offenem Fenster, am sparsamsten. Aus: immer normale Priorität.",
+    "en": "Windows 11 efficiency mode (green leaf in Task Manager). Automatic: on while the detail window is closed. Always on: even with the window open, the most efficient. Off: always normal priority."
+  },
+  "page.display": {
+    "de": "Anzeige",
+    "en": "Display"
+  },
+  "page.order": {
+    "de": "Reihenfolge der Symbole",
+    "en": "Icon order"
+  },
+  "page.order.cpu": {
+    "de": "CPU zuerst",
+    "en": "CPU first"
+  },
+  "page.order.gpu": {
+    "de": "GPU zuerst",
+    "en": "GPU first"
+  },
+  "page.sensor_cpu": {
+    "de": "Sensor im CPU-Symbol",
+    "en": "Sensor in the CPU icon"
+  },
+  "page.sensor_gpu": {
+    "de": "Sensor im GPU-Symbol",
+    "en": "Sensor in the GPU icon"
+  },
+  "page.sensor.text": {
+    "de": "Gibt es den gewählten Sensor nicht, wird automatisch gewählt. Andere Sensornamen gehen über die Einstellungsdatei (alle Namen zeigt „hardware_monitor.py --list“).",
+    "en": "If the chosen sensor doesn't exist, one is chosen automatically. Other sensor names go through the settings file (\"hardware_monitor.py --list\" shows all names)."
+  },
+  "page.colors.text": {
+    "de": "Farbe der Temperaturen – getrennt, weil CPUs unter Last deutlich heißer werden dürfen als Grafikkarten. Mainboard und Laufwerke im Detailfenster richten sich nach der CPU.",
+    "en": "Temperature colors – separate, because CPUs may get considerably hotter under load than graphics cards. Motherboard and drives in the detail window use the CPU values."
+  },
+  "page.cpu_yellow": {
+    "de": "CPU gelb ab",
+    "en": "CPU yellow from"
+  },
+  "page.cpu_red": {
+    "de": "CPU rot ab",
+    "en": "CPU red from"
+  },
+  "page.gpu_yellow": {
+    "de": "GPU gelb ab",
+    "en": "GPU yellow from"
+  },
+  "page.gpu_red": {
+    "de": "GPU rot ab",
+    "en": "GPU red from"
+  },
+  "page.privacy": {
+    "de": "Privacy mode",
+    "en": "Privacy mode"
+  },
+  "page.privacy.text": {
+    "de": "Versteckt Seriennummern, MAC-Adressen, die Prozessor-ID und den Computernamen im Detailfenster – auf dem Bildschirm und beim Kopieren stehen sie als ████████ da, z. B. für Screenshots oder Forenbeiträge. Lässt sich auch im Detailfenster (neben „● Live“) und im Rechtsklick-Menü der Symbole umschalten.",
+    "en": "Hides serial numbers, MAC addresses, the processor ID and the computer name in the detail window – on screen and when copying they appear as ████████, e.g. for screenshots or forum posts. Can also be switched in the detail window (next to \"● Live\") and in the right-click menu of the icons."
+  },
+  "page.privacy.switch": {
+    "de": "Seriennummern, MAC-Adressen und Computernamen verstecken",
+    "en": "Hide serial numbers, MAC addresses and computer name"
+  },
+  "page.power": {
+    "de": "Stromverbrauch",
+    "en": "Power consumption"
+  },
+  "page.power.text": {
+    "de": "Rechnet zusammen, wie viel Energie der ganze PC braucht und was sie kostet. Geschätzt: CPU und Grafikkarte werden gemessen, dazu ein fester Wert für den Rest des PCs, geteilt durch den Wirkungsgrad des Netzteils. Gezählt wird nur, solange der Monitor läuft. Gespeichert in data\\hardware_monitor_energy.json.",
+    "en": "Adds up how much energy the whole PC uses and what it costs. Estimated: CPU and graphics card are measured, plus a fixed value for the rest of the PC, divided by the efficiency of the power supply. Counted only while the monitor runs. Saved in data\\hardware_monitor_energy.json."
+  },
+  "page.power.switch": {
+    "de": "Stromverbrauch aufzeichnen",
+    "en": "Log power consumption"
+  },
+  "page.power.summary_stopped": {
+    "de": "Die Summen stehen hier, solange der Monitor läuft.",
+    "en": "The totals are shown here while the monitor runs."
+  },
+  "page.power.price": {
+    "de": "Preis pro kWh",
+    "en": "Price per kWh"
+  },
+  "page.power.currency": {
+    "de": "Währung",
+    "en": "Currency"
+  },
+  "page.power.other": {
+    "de": "Übrige Komponenten",
+    "en": "Other components"
+  },
+  "page.power.efficiency": {
+    "de": "Wirkungsgrad des Netzteils",
+    "en": "Power supply efficiency"
+  },
+  "page.power.calibrate": {
+    "de": "Übrige Komponenten: etwa 30–60 W bei einem Desktop-PC. Wirkungsgrad: Netzteile mit 80 PLUS Bronze/Gold schaffen etwa 85–90 %. Mit einem Strommessgerät an der Steckdose: mit „Jetzt“ im Detailfenster vergleichen und „Übrige Komponenten“ anpassen, bis beide passen.",
+    "en": "Other components: about 30–60 W for a desktop PC. Efficiency: 80 PLUS Bronze/Gold power supplies reach about 85–90 %. With an energy meter at the socket: compare it with \"Now\" in the detail window and adjust \"Other components\" until both match."
+  },
+  "page.power.show": {
+    "de": "Diagramm zeigen",
+    "en": "Show chart"
+  },
+  "page.power.delete": {
+    "de": "Alle gespeicherten Daten löschen",
+    "en": "Delete all saved data"
+  },
+  "page.power.delete_really": {
+    "de": "Wirklich löschen",
+    "en": "Really delete"
+  },
+  "page.power.delete_question": {
+    "de": "Alle aufgezeichneten Verbrauchsdaten löschen? Das lässt sich nicht rückgängig machen.",
+    "en": "Delete all logged power consumption data? This can't be undone."
+  },
+  "page.fans": {
+    "de": "Lüftersteuerung",
+    "en": "Fan control"
+  },
+  "page.fans.text": {
+    "de": "Kurven für die Lüfter der Grafikkarte und die Lüfteranschlüsse des Mainboards – eingestellt im Detailfenster, Tab „Fans“: je Lüfter Auto, eine Kurve oder eine feste Drehzahl. Ab der roten Temperaturgrenze läuft ein gesteuerter Lüfter immer mit 100 %; beim Beenden geht jeder Lüfter zurück an Grafikkarte oder BIOS. „Alles zurücksetzen“ stellt alle Lüfter auf Auto.",
+    "en": "Curves for the graphics card fans and the motherboard fan headers – set in the detail window, tab \"Fans\": per fan Auto, a curve or a fixed speed. From the red temperature limit on a controlled fan always runs at 100 %; when quitting, every fan is handed back to the graphics card or the BIOS. \"Reset everything\" sets all fans back to Auto."
+  },
+  "page.fans.show": {
+    "de": "Lüftersteuerung öffnen",
+    "en": "Open fan control"
+  },
+  "page.detail_window": {
+    "de": "Detailfenster",
+    "en": "Detail window"
+  },
+  "page.detail_window.text": {
+    "de": "Welche Werte im Detailfenster stehen, legst du in detail_window_content.py fest – eine Zeile pro Wert. Änderungen erscheinen beim nächsten Öffnen des Fensters.",
+    "en": "Which values the detail window shows is set in detail_window_content.py – one line per value. Changes appear the next time the window opens."
+  },
+  "page.open_folder": {
+    "de": "Ordner öffnen",
+    "en": "Open folder"
+  },
+  "page.advanced": {
+    "de": "Erweitert",
+    "en": "Advanced"
+  },
+  "page.open_log": {
+    "de": "Log öffnen",
+    "en": "Open log"
+  },
+  "page.open_settings_file": {
+    "de": "Einstellungsdatei öffnen",
+    "en": "Open settings file"
+  },
+  "page.reset": {
+    "de": "Alles zurücksetzen",
+    "en": "Reset everything"
+  },
+  "message.starting": {
+    "de": "Wird gestartet …",
+    "en": "Starting …"
+  },
+  "message.running": {
+    "de": "Läuft",
+    "en": "Running"
+  },
+  "message.not_set_up": {
+    "de": "Noch nicht eingerichtet – „Einrichten“ unten",
+    "en": "Not set up yet – \"Set up\" below"
+  },
+  "message.start_failed": {
+    "de": "Die Aufgabe „{task}“ ließ sich nicht starten",
+    "en": "The task \"{task}\" could not be started"
+  },
+  "message.no_answer": {
+    "de": "Die Sensoren antworten nicht – Details in data\\monitor.log",
+    "en": "The sensors don't answer – details in data\\monitor.log"
+  },
+  "toast.not_running": {
+    "de": "Der Hardware Monitor läuft nicht – erst starten",
+    "en": "The Hardware Monitor isn't running – start it first"
+  },
+  "toast.deleted": {
+    "de": "Verbrauchsdaten gelöscht ✓",
+    "en": "Power consumption data deleted ✓"
+  },
+  "toast.delete_failed": {
+    "de": "Löschen fehlgeschlagen",
+    "en": "Couldn't delete the data"
+  },
+  "toast.reset": {
+    "de": "Zurückgesetzt",
+    "en": "Reset"
+  }
+}

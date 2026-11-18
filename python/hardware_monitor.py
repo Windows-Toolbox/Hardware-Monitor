@@ -45,14 +45,15 @@ from detail_window import ICON_FILE, SENSOR_TYPES, DetailWindow, fmt_value, temp
 # Defaults, rates, port, loading/saving – shared with the page in the Toolbox
 from hardware_monitor_settings import (ICON_RATES, IPC_PORT, LOG_FILE, POPUP_RATES, load_settings,  # noqa: E402
                                        save_settings, short_num, t)
-import i18n  # noqa: E402  (language – lives in toolbox\, hardware_monitor_settings adds the path)
+import i18n  # noqa: E402  (language)
+import storage  # noqa: E402  (where data, runtime and lhm lie)
 import energy  # noqa: E402  (power consumption: estimate, log, add up)
 import fans  # noqa: E402  (fan control: curves for graphics card and case fans)
 
 
 # ---------- Settings ----------
-# Folder with LibreHardwareMonitorLib.dll (created by Setup.exe, see "downloads" in program.json)
-LHM_DIR = str(Path(__file__).resolve().parent / "lhm")
+# Folder with LibreHardwareMonitorLib.dll (downloaded by "Set up", setup.ps1)
+LHM_DIR = str(storage.HOME / "lhm")
 
 # With "auto": which sensor is shown in the tray icon – the first one from the list that exists
 CPU_SENSORS = ("Core (Tctl/Tdie)", "CPU Package", "Core Average")
@@ -910,7 +911,9 @@ class HardwareMonitorApp:
             return {"ok": True, "pid": os.getpid(), "cpu": self.current["cpu"], "gpu": self.current["gpu"],
                     "order": self.order, "icons": self.kinds, "privacy_mode": self.settings["privacy_mode"],
                     "power": round(power["watts"]) if power else None,
-                    "energy": energy.totals(self.energy.snapshot())}
+                    "energy": energy.totals(self.energy.snapshot()),
+                    "power_summary": energy.summary(energy.totals(self.energy.snapshot()),
+                                                    round(power["watts"]) if power else None, self.settings)}
         if command in ("reload", "quit", "show_power", "show_fans"):
             self.ui_queue.put(command)
             return {"ok": True}

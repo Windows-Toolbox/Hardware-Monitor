@@ -1,0 +1,30 @@
+[package]
+name = "hardware-monitor"
+version = "2.0.0"
+edition = "2024"
+publish = false
+description = "CPU and GPU temperature in the taskbar; a click on an icon shows almost all hardware values – plus power consumption, fan curves and drive health."
+repository = "https://github.com/Windows-Toolbox/Hardware-Monitor"
+
+# What the Toolbox needs to know; program.json is generated from this by build.rs (Toolbox\DESIGN.md 15.4).
+[package.metadata.toolbox]
+id = "hardware_monitor"
+exe = "HardwareMonitor.exe"
+category = { de = "Allgemein", en = "General" }
+background = true
+name = "Hardware Monitor"
+description = { de = "CPU- und GPU-Temperatur in der Taskleiste; ein Klick auf ein Symbol zeigt fast alle Hardware-Werte – dazu Stromverbrauch, Lüfterkurven und Laufwerkszustand.", en = "CPU and GPU temperature in the taskbar; a click on an icon shows almost all hardware values – plus power consumption, fan curves and drive health." }
+
+[dependencies]
+# The shared library of the Windows Toolbox, compiled in (from its main branch).
+kit = { package = "toolbox-kit", git = "https://github.com/Windows-Toolbox/Toolbox" }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+
+[build-dependencies]
+kit = { package = "toolbox-kit", git = "https://github.com/Windows-Toolbox/Toolbox", default-features = false, features = ["build"] }
+
+[profile.release]
+lto = true
+strip = true
+codegen-units = 1

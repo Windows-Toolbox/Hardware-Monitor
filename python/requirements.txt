@@ -1,0 +1,11 @@
+# Fixed versions – every PC gets exactly these packages (setup.ps1 installs them into runtime\).
+# New versions: install them into runtime\, test, then take them over here with "runtime\python.exe -m pip freeze".
+pystray==0.19.5
+pillow==12.3.0
+pythonnet==3.2.1
+
+# Dependencies of the packages above (pip would otherwise take the newest version)
+six==1.17.0                 # pystray
+clr_loader==0.3.1           # pythonnet
+cffi==2.1.1                 # clr_loader
+pycparser==3.11             # cffi

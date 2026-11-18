@@ -1,0 +1,5 @@
+# The build folder and the installed program (created by cargo and build.ps1); dist\ also holds what "Set up" puts
+# there (runtime\, lhm\) and your data (data\).
+target/
+dist/
+__pycache__/

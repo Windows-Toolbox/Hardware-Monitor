@@ -1,0 +1,37 @@
+# Makes a release: builds, packs the program (exe, manifest, README, python\ – not runtime\, lhm\, data\) into a
+# zip, signs it, and publishes zip and signature as GitHub release v<version> – the version from Cargo.toml.
+# Programs that are installed find it with "Update".
+#
+# Requirements: the GitHub CLI (gh), signed in; the Toolbox repo next to this one (its `sign` tool holds the
+# release key, see Toolbox\DESIGN.md 15.6). Refuses if that version was already released or something is uncommitted.
+$ErrorActionPreference = 'Stop'
+if ($PSScriptRoot) { Set-Location $PSScriptRoot }
+
+if (git status --porcelain) { throw 'There are uncommitted changes - commit first, so the release is what the repo holds.' }
+
+& .\build.ps1
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+$manifest = Get-Content 'dist\program.json' -Raw | ConvertFrom-Json
+$name = "$($manifest.id)-$($manifest.version)"
+$tag = "v$($manifest.version)"
+gh release view $tag *> $null
+if ($LASTEXITCODE -eq 0) { throw "$tag was already released - raise the version in Cargo.toml." }
+
+# The sign tool is part of the Toolbox repo; it packs and signs in one step.
+$toolbox = Join-Path (Split-Path $PSScriptRoot -Parent) 'Toolbox'
+# What goes into the zip: "Set up" makes runtime\ and lhm\ on each PC, data\ is yours.
+$stage = Join-Path ([IO.Path]::GetTempPath()) "hardware_monitor-release"
+if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
+New-Item -ItemType Directory $stage | Out-Null
+Copy-Item 'dist\HardwareMonitor.exe', 'dist\program.json', 'dist\README.md' $stage
+robocopy python (Join-Path $stage 'python') /E /XD __pycache__ /NFL /NDL /NJH /NJS /NP | Out-Null
+if ($LASTEXITCODE -ge 8) { throw "Copying python\ failed (robocopy code $LASTEXITCODE)" }
+cargo run --release --quiet --manifest-path (Join-Path $toolbox 'Cargo.toml') -p sign -- pack $stage "$name.zip"
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+Remove-Item $stage -Recurse -Force
+
+gh release create $tag "$name.zip" "$name.zip.sig" --title "$($manifest.name) $($manifest.version)" --notes-file 'RELEASE.md'
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+Remove-Item "$name.zip", "$name.zip.sig"
+Write-Host "Released: $tag"

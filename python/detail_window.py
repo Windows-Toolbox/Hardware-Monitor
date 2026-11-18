@@ -19,8 +19,6 @@ import importlib
 import json
 import logging
 import re
-import socket
-import subprocess
 import threading
 import time
 import tkinter as tk
@@ -33,54 +31,30 @@ import hardware_data
 from drive_view import DriveHealthView
 from energy_view import EnergyView
 from fan_view import FanView
-from hardware_monitor_settings import num, t
+from hardware_monitor_settings import PROGRAM_ID, num, t
 
 CONTENT_FILE = Path(__file__).with_name("detail_window_content.py")
-ICON_FILE = Path(__file__).resolve().parents[2] / "toolbox" / "program.ico"     # ⚒ on green, like all programs
+ICON_FILE = Path(__file__).resolve().with_name("program.ico")     # ⚒ on green, like all programs
 # Window title: the path of the program, the way Explorer shows its folder. In Task Manager it then appears under
 # "Hardware Monitor" and shows which copy is running (e.g. after the folder was moved).
 PROGRAM_FILE = Path(__file__).resolve().with_name("hardware_monitor.py")
-# Gear at the top right: opens the Hardware Monitor's page in the Toolbox (open_toolbox)
-PROGRAM_ID = json.loads(PROGRAM_FILE.with_name("program.json").read_text(encoding="utf-8"))["id"]
-TOOLBOX_DIR = Path(__file__).resolve().parents[2]
-TOOLBOX_EXE = TOOLBOX_DIR / "Toolbox.exe"            # starter of the Toolbox (created by Setup.exe)
-TOOLBOX_PORT = json.loads((TOOLBOX_DIR / "toolbox" / "program.json").read_text(encoding="utf-8"))["port"]
-
-
-def toolbox_command(command):
-    """Sends a command to the running Toolbox (see instance_server in toolbox.py). True if it says "ok"."""
-    try:
-        with socket.create_connection(("127.0.0.1", TOOLBOX_PORT), timeout=0.5) as conn:
-            conn.sendall(f"{command}\n".encode())
-            return conn.recv(16).startswith(b"ok")
-    except OSError:
-        return False
+# Gear at the top right: opens the Hardware Monitor's page in the Toolbox (open_toolbox) – through the pipe of the
+# Toolbox's agent (Toolbox\\DESIGN.md 4.3 and 15.1): one JSON line, no "hello" needed.
+TOOLBOX_PIPE = r"\\.\pipe\windows-toolbox.toolbox"
 
 
 def open_toolbox():
-    """Show the Hardware Monitor's page in the Toolbox – blocks for up to 15 s, so call it in the background.
-    If the Toolbox is running, "show hardware_monitor" is enough. Otherwise it gets started, via explorer.exe: the
-    monitor usually runs with admin rights (task, UAC) – started directly, the Toolbox would have them too.
-    explorer.exe starts it as a normal program but doesn't pass on arguments. That's why "show …" is sent
-    afterwards, as soon as it answers. True if the Toolbox shows the page."""
+    """Show the Hardware Monitor's page in the Toolbox. True if a Toolbox runs and got the request. One that does
+    not run is not started from here: this process has admin rights, and a Toolbox started by it would have them
+    too."""
     ctypes.windll.user32.AllowSetForegroundWindow(-1)  # ASFW_ANY: the Toolbox may bring its window to the front
-    command = f"show {PROGRAM_ID}"
-    if toolbox_command(command):
-        return True
-    if not TOOLBOX_EXE.exists():
-        logging.warning("%s is missing – run Setup.exe", TOOLBOX_EXE)
-        return False
     try:
-        subprocess.Popen(["explorer.exe", str(TOOLBOX_EXE)])
+        with open(TOOLBOX_PIPE, "wb", buffering=0) as pipe:
+            pipe.write(json.dumps({"type": "show", "id": PROGRAM_ID}).encode() + b"\n")
+        return True
     except OSError:
-        logging.exception("Toolbox could not be started")
+        logging.warning("No Toolbox runs – its page cannot be shown")
         return False
-    for _ in range(60):
-        time.sleep(0.25)
-        if toolbox_command(command):
-            return True
-    logging.warning("Toolbox didn't answer after 15 s")
-    return False
 
 
 # ---------- Building blocks for detail_window_content.py ----------

@@ -1,27 +1,24 @@
 """
-What hardware_monitor.py and its page in the Toolbox (hardware_monitor_gui.py) both need: defaults, allowed values,
-loading and saving data\\hardware_monitor.json, port and name of the task – and t, the texts from i18n.json (see
-toolbox\\i18n.py), plus number and date formatting in the chosen language.
+What the parts of the monitor share: defaults, allowed values, loading and saving data\\hardware_monitor.json, the
+port – and t, the texts from i18n.json (see i18n.py), plus number and date formatting in the chosen language.
 
-A separate file because the Toolbox can't import hardware_monitor.py – that loads LibreHardwareMonitor on import.
-Port and task are in program.json because setup\\setup.ps1 needs them too.
+The page in the Toolbox is HardwareMonitor.exe (src\\main.rs in the repo): it writes the values of its page into
+data\\hardware_monitor.json and sends "reload". Port and file name are written there a second time.
 """
 
-import json
 import re
 import sys
 from pathlib import Path
 
 FOLDER = Path(__file__).resolve().parent
-sys.path.append(str(FOLDER.parents[1] / "toolbox"))     # storage.py and i18n.py (shared with the Toolbox)
+sys.path.insert(0, str(FOLDER))
 import storage  # noqa: E402
 import i18n  # noqa: E402
 
-MANIFEST = json.loads((FOLDER / "program.json").read_text(encoding="utf-8"))
-IPC_PORT = MANIFEST["port"]            # local remote control by the Toolbox (only reachable from this PC)
-TASK = MANIFEST["task"]                # scheduled task that starts the monitor at sign-in with admin rights
-SETTINGS_FILE = storage.settings_file(MANIFEST["id"])
-LOG_FILE = storage.log_file(MANIFEST["id"])
+PROGRAM_ID = "hardware_monitor"        # the id in the Toolbox (Cargo.toml of HardwareMonitor.exe)
+IPC_PORT = 47815                       # local remote control by HardwareMonitor.exe (only reachable from this PC)
+SETTINGS_FILE = storage.settings_file("hardware_monitor")
+LOG_FILE = storage.log_file()
 t = i18n.Texts(FOLDER / "i18n.json")   # all texts of the Hardware Monitor: t("id") in the chosen language
 
 # Choices in the right-click menu and in the Toolbox (seconds)

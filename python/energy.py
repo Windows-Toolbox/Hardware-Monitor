@@ -61,6 +61,21 @@ def fmt_cost(wh, settings):
     return f"{num(wh / 1000 * settings['energy_price'], 2)} {settings['energy_currency']}".strip()
 
 
+def summary(totals_now, watts, settings):
+    """The line on the page in the Toolbox: now, today, this month, in total – or why there is nothing yet."""
+    from hardware_monitor_settings import t
+    parts = [t("page.power.now", watts=num(watts, 0))] if watts is not None else []
+    for name in ("today", "month", "all"):
+        wh = totals_now[name][0]
+        if wh:
+            parts.append(t(f"page.power.{name}", energy=fmt_energy(wh, "kWh"), cost=fmt_cost(wh, settings)))
+    if totals_now.get("since"):
+        parts.append(t("page.power.since", since=totals_now["since"]))
+    if not parts:
+        return t("page.power.nothing_yet" if settings["energy_logging"] else "page.power.off")
+    return "  ·  ".join(parts)
+
+
 def wall_watts(cpu, gpu, settings):
     """Estimated power at the wall socket from the measured CPU and GPU power (None = unknown, counts as 0)."""
     dc = (cpu or 0) + (gpu or 0) + settings["energy_other_watts"]
