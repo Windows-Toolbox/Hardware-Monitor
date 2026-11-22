@@ -30,7 +30,16 @@ The settings are on the page; the refresh rates and the privacy mode can also be
 the icons. Which values the detail window shows is in `python\detail_window_content.py`.
 
 What is yours lies in `dist\data\`: `hardware_monitor.json` (the monitor's settings, window position, fan curves),
-`hardware_monitor_energy.json` (the power log), `monitor.log`, and `settings.json` / `log.txt` of the page.
+`hardware_monitor_energy.json` (the power log), `monitor.log`, and `settings.json` / `log.txt` of the page. The
+Toolbox's *Export…* takes all of it along except the logs (from Toolbox 2.1.1 on).
+
+## Removing it
+
+Press **Remove setup** on its page before you delete the folder. A window opens, stops the sensors, deletes the task
+"HardwareMonitor" (only if it points to this folder – another copy's task stays) and asks whether the driver PawnIO
+should go too; other programs (FanControl, LibreHardwareMonitor) may use it, so it stays unless you say yes. Windows
+asks for admin rights once. `runtime\` and `lhm\` lie in the folder and go with it. The Toolbox's *Uninstall all*
+leaves the task and PawnIO on purpose – it has no admin rights.
 
 ## How it fits together
 
@@ -79,6 +88,8 @@ puts exe, manifest, README and `python\` into the zip (not `runtime\`, `lhm\`, `
 - ✓ Hand test 2026-11-18: Set up with the admin prompt, Start / Stop from the Toolbox, status line, page changes
   reach the running monitor and right-click menu changes reach the page, chart, fan control, gear in the detail
   window
+- ◐ Remove setup (2026-11-22): built, script parsed in PowerShell 5 and 7; not run yet (it would remove the real
+  task) – first on the laptop
 
 ## Later
 

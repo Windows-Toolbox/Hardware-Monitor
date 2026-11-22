@@ -13,9 +13,14 @@ running it again only does what is missing:
      without asking. The task has no trigger: whether the monitor starts with Windows is the switch in the Toolbox.
 
 Where: the folder with HardwareMonitor.exe – dist\ in the repo, the unpacked folder of a release.
+
+"Remove setup" on the page runs it with -Remove: it stops the sensors and deletes the task (only if it points to
+this folder – another copy's task stays) and, if you say yes, uninstalls PawnIO. runtime\ and lhm\ lie in this
+folder and go with it.
 #>
 # -Admin: step 5 (started by the script itself). -NoAdmin: steps 1–4 only (for testing).
-param([switch]$Admin, [switch]$NoAdmin)
+# -Remove: undo step 5 (with -Admin: the part with admin rights; -RemovePawnIO: PawnIO too).
+param([switch]$Admin, [switch]$NoAdmin, [switch]$Remove, [switch]$RemovePawnIO)
 
 $ErrorActionPreference = 'Stop'
 $PythonVersion = '3.14'
@@ -44,6 +49,78 @@ function Test-TaskFits {
     $task = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
     $task -and $task.Actions[0].Execute -eq $Sensors -and $task.Actions[0].Arguments -eq "`"$Script`"" -and
         $task.Principal.RunLevel -eq 'Highest' -and -not $task.Triggers
+}
+
+# The task points to this folder's sensors (not another copy's).
+function Test-TaskOurs($task) {
+    $task -and $task.Actions[0].Execute -eq $Sensors
+}
+
+# ---------- Remove setup ----------
+if ($Remove -and $Admin) {
+    try {
+        $task = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
+        if (Test-TaskOurs $task) {
+            Step "Task $TaskName"
+            Stop-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
+            Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
+            Ok 'sensors stopped, task deleted'
+        }
+        if ($RemovePawnIO -and (Get-Service PawnIO -ErrorAction SilentlyContinue)) {
+            Step 'PawnIO'
+            winget uninstall --id namazso.PawnIO --exact --accept-source-agreements | Out-Host
+            if ($LASTEXITCODE -ne 0) { throw "winget reports code $LASTEXITCODE" }
+            Ok 'uninstalled'
+        }
+        exit 0
+    } catch {
+        Write-Host "   [!] $_" -ForegroundColor Yellow
+        Read-Host "`nPress Enter to close" | Out-Null
+        exit 1
+    }
+}
+if ($Remove) {
+    try {
+        Step 'Remove setup'
+        $task = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
+        $ours = Test-TaskOurs $task
+        $pawnio = [bool](Get-Service PawnIO -ErrorAction SilentlyContinue)
+        if ($ours) {
+            Info "The task `"$TaskName`" is deleted; the sensors stop."
+        } elseif ($task) {
+            Info "The task `"$TaskName`" belongs to another copy ($($task.Actions[0].Execute)) - it stays."
+        } else {
+            Info "There is no task `"$TaskName`"."
+        }
+        Info 'runtime\ and lhm\ lie in this folder - they go when you delete it.'
+        $withPawnIO = $false
+        if ($pawnio) {
+            Write-Host ""
+            Info 'The driver PawnIO is installed. Other programs may use it too (e.g. FanControl, LibreHardwareMonitor).'
+            $withPawnIO = (Read-Host '   Uninstall PawnIO as well? [y/N]') -match '^(y|j)'
+        }
+        if (-not $ours -and -not $withPawnIO) {
+            Write-Host ""
+            Write-Host 'Nothing to remove. This window closes in a few seconds.' -ForegroundColor Green
+            Start-Sleep 4
+            exit 0
+        }
+        Write-Host ""
+        Info 'Windows asks for admin rights once …'
+        $arguments = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$PSCommandPath`"", '-Remove', '-Admin')
+        if ($withPawnIO) { $arguments += '-RemovePawnIO' }
+        $p = Start-Process powershell.exe -Verb RunAs -Wait -PassThru -ArgumentList $arguments
+        if ($p.ExitCode -ne 0) { throw 'not everything worked (see the window that asked for admin rights)' }
+        Write-Host ""
+        Write-Host 'Removed. This window closes in a few seconds.' -ForegroundColor Green
+        Start-Sleep 4
+        exit 0
+    } catch {
+        Write-Host ""
+        Write-Host "   [!] $_" -ForegroundColor Yellow
+        Read-Host "`nPress Enter to close" | Out-Null
+        exit 1
+    }
 }
 
 # ---------- 5. with admin rights (started by the part below, once) ----------

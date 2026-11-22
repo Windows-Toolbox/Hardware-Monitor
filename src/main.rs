@@ -296,12 +296,14 @@ fn same_path(a: &Path, b: &Path) -> bool {
     }
 }
 
-/// "Set up": `python\setup.ps1` in a console window of its own, so you see what happens. Waits for its end.
-fn run_setup() -> bool {
+/// "Set up" (or with `remove`: "Remove setup"): `python\setup.ps1` in a console window of its own, so you see what
+/// happens. Waits for its end.
+fn run_setup(remove: bool) -> bool {
     let script = python_dir().join("setup.ps1");
     Command::new("powershell.exe")
         .args(["-NoProfile", "-ExecutionPolicy", "Bypass", "-File"])
         .arg(&script)
+        .args(if remove { &["-Remove"][..] } else { &[] })
         .creation_flags(CREATE_NEW_CONSOLE)
         .status()
         .is_ok_and(|s| s.success())
@@ -360,6 +362,7 @@ impl Report {
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum Order {
     SetUp,
+    RemoveSetup,
     CheckSetup,
 }
 
@@ -367,8 +370,10 @@ struct Monitor {
     settings: Settings,
     report: Report,
     setup: Setup,
-    /// "Set up" runs right now.
+    /// "Set up" or "Remove setup" runs right now.
     setting_up: bool,
+    /// … and it is "Remove setup".
+    removing: bool,
     orders: Vec<Order>,
     /// The workers are at work.
     running: bool,
@@ -385,6 +390,7 @@ impl Monitor {
             report: Report::starting(),
             setup: Setup { unknown: true, ..Default::default() },
             setting_up: false,
+            removing: false,
             orders: vec![],
             running: false,
             delete_asked: None,
@@ -396,7 +402,7 @@ impl Monitor {
         p.text(t!("page.setup.text"));
         let s = &self.setup;
         if self.setting_up {
-            p.status(t!("page.setup.running"), Health::Warn);
+            p.status(if self.removing { t!("page.setup.removing") } else { t!("page.setup.running") }, Health::Warn);
         } else if s.unknown {
             p.status(t!("page.setup.checking"), Health::Warn);
         } else {
@@ -420,6 +426,14 @@ impl Monitor {
             p.buttons(|b| {
                 b.button(t!("page.setup.button"), "set_up").button(t!("page.setup.again"), "check_setup");
             });
+            // Only when there is something to remove; the window it opens says what and asks about PawnIO.
+            let s = &self.setup;
+            if !s.unknown && (s.pawnio || s.task != TaskState::Missing) {
+                p.text(t!("page.setup.remove.text"));
+                p.buttons(|b| {
+                    b.button(t!("page.setup.remove"), "remove_setup");
+                });
+            }
         }
     }
 }
@@ -547,6 +561,7 @@ impl Program for Monitor {
     fn action(&mut self, name: &str, s: &mut Settings) -> Option<String> {
         match name {
             "set_up" if !self.setting_up => self.orders.push(Order::SetUp),
+            "remove_setup" if !self.setting_up => self.orders.push(Order::RemoveSetup),
             "check_setup" => self.orders.push(Order::CheckSetup),
             "show_power" | "show_fans" => {
                 if ask(name).is_none() {
@@ -617,15 +632,24 @@ fn publish(rt: &Runtime<Monitor>, report: Report) {
     }
 }
 
-/// Runs the orders of the page: "Set up", "Check again".
+/// Runs the orders of the page: "Set up", "Remove setup", "Check again".
 fn do_orders(rt: &Runtime<Monitor>) {
     let orders = rt.with(|p, _| std::mem::take(&mut p.orders));
     for order in orders {
-        if order == Order::SetUp {
-            rt.with(|p, _| p.setting_up = true);
+        if order != Order::CheckSetup {
+            let remove = order == Order::RemoveSetup;
+            rt.with(|p, _| {
+                p.setting_up = true;
+                p.removing = remove;
+            });
             rt.changed();
-            let ok = run_setup();
-            app::log(if ok { "set up" } else { "setup did not finish" });
+            let ok = run_setup(remove);
+            app::log(match (remove, ok) {
+                (false, true) => "set up",
+                (false, false) => "setup did not finish",
+                (true, true) => "setup removed",
+                (true, false) => "removing the setup did not finish",
+            });
         }
         let setup = check_setup();
         rt.with(|p, _| {

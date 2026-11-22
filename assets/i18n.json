@@ -59,6 +59,18 @@
     "de": "Einrichten",
     "en": "Set up"
   },
+  "page.setup.removing": {
+    "de": "Einrichtung wird entfernt – siehe das Fenster dazu",
+    "en": "Removing the setup – see its window"
+  },
+  "page.setup.remove.text": {
+    "de": "Vor dem Löschen des Ordners: „Einrichtung entfernen“ beendet die Sensoren, löscht die Aufgabe und fragt, ob auch PawnIO weg soll (andere Programme können es nutzen). runtime\\ und lhm\\ liegen in diesem Ordner und gehen mit ihm.",
+    "en": "Before deleting the folder: \"Remove setup\" stops the sensors, deletes the task and asks whether PawnIO should go too (other programs may use it). runtime\\ and lhm\\ lie in this folder and go with it."
+  },
+  "page.setup.remove": {
+    "de": "Einrichtung entfernen",
+    "en": "Remove setup"
+  },
   "page.setup.again": {
     "de": "Neu prüfen",
     "en": "Check again"
