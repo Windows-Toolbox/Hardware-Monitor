@@ -1,0 +1,313 @@
+{
+  "help": [
+    "What the detail window of the Hardware Monitor shows – tab by tab, one row per value. Saved? Close the window",
+    "and open it again: the change is there at once, nothing to compile.",
+    "",
+    "  a value:           {\"sensor\": \"GPU Hot Spot\"}  – the name LibreHardwareMonitor gives it",
+    "  * as wildcard:     {\"sensor\": \"Fan #*\"}  – all fans",
+    "  type:              {\"sensor\": \"GPU Core\", \"type\": \"Clock\"}  – only if the name exists several times",
+    "  own label:         {\"sensor\": \"Package\", \"text\": \"CPU total\"}  – or an id of assets\\i18n.json",
+    "  leave some out:    {\"sensor\": \"CPU Core #*\", \"exclude\": \"*Distance*\"}",
+    "  a group:           {\"device\": \"drive\", \"values\": [...]}  – once per device; device: cpu, gpu, ram, motherboard,",
+    "                     drive, network, battery, other; \"name\": \"Intel*\" only devices of that name; \"title\": own heading",
+    "  a section:         {\"section\": \"section.fans\", \"values\": [...], \"one_row\": true}  – folds shut; one_row puts",
+    "                     values of the same name into one row (Fan #1: speed, then the control as a bar)",
+    "  a tab of its own:  {\"title\": \"tab.power\", \"view\": \"power\"}  – power, fans, health, hardware_data, all",
+    "                     (\"all\": everything LibreHardwareMonitor finds, for looking up names)",
+    "",
+    "What a PC does not have is simply not shown; a tab whose devices the PC has none of is hidden.",
+    "explanations: [sensor type, pattern, text id] – the text in the footer when the mouse is over a value; the first",
+    "whose pattern (a regular expression) matches the whole name; {0}, {1} = what its brackets caught."
+  ],
+  "tabs": [
+    {"title": "tab.temperatures", "groups": [
+      {"device": "cpu", "values": [
+        {"sensor": "Core (Tctl/Tdie)"},
+        {"sensor": "CCD* (Tdie)"},
+        {"sensor": "CPU Package", "type": "Temperature"},
+        {"sensor": "Core Max", "type": "Temperature"}
+      ]},
+      {"device": "gpu", "values": [
+        {"sensor": "GPU Core", "type": "Temperature"},
+        {"sensor": "GPU Hot Spot"},
+        {"sensor": "GPU Memory Junction"},
+        {"section": "section.fans", "one_row": true, "values": [
+          {"sensor": "GPU Fan*", "type": "Fan"},
+          {"sensor": "GPU Fan*", "type": "Control"}
+        ]}
+      ]},
+      {"device": "motherboard", "values": [
+        {"section": "section.fans", "one_row": true, "values": [
+          {"sensor": "*Fan*", "type": "Fan"},
+          {"sensor": "*Pump*", "type": "Fan"},
+          {"sensor": "*Fan*", "type": "Control"},
+          {"sensor": "*Pump*", "type": "Control"}
+        ]}
+      ]}
+    ]},
+    {"title": "tab.cpu", "groups": [
+      {"device": "cpu", "values": [
+        {"sensor": "CPU Total"},
+        {"sensor": "CPU Core Max"},
+        {"sensor": "Package", "type": "Power"},
+        {"sensor": "CPU Package", "type": "Power"},
+        {"sensor": "CPU Cores", "type": "Power"},
+        {"sensor": "Cores (Average)"},
+        {"sensor": "Cores (Average Effective)"},
+        {"sensor": "CPU Core #*", "type": "Clock"},
+        {"sensor": "Core (Tctl/Tdie)"},
+        {"sensor": "CCD* (Tdie)"},
+        {"sensor": "CPU Package", "type": "Temperature"},
+        {"sensor": "Core Max", "type": "Temperature"},
+        {"sensor": "CPU Core #*", "type": "Temperature", "exclude": "*Distance to TjMax"},
+        {"sensor": "Core (SVI2 TFN)"},
+        {"sensor": "SoC (SVI2 TFN)"},
+        {"sensor": "CPU Core", "type": "Voltage"},
+        {"sensor": "Bus Speed"}
+      ]}
+    ]},
+    {"title": "tab.gpu", "groups": [
+      {"device": "gpu", "values": [
+        {"sensor": "GPU Core", "type": "Temperature"},
+        {"sensor": "GPU Hot Spot"},
+        {"sensor": "GPU Core", "type": "Load", "text": "value.gpu_core_load"},
+        {"sensor": "GPU Memory Controller"},
+        {"sensor": "GPU Video Engine"},
+        {"sensor": "GPU Bus"},
+        {"sensor": "GPU Power", "type": "Load"},
+        {"sensor": "GPU Board Power"},
+        {"sensor": "GPU Package"},
+        {"sensor": "GPU Core", "type": "Clock", "text": "value.gpu_core_clock"},
+        {"sensor": "GPU Memory", "type": "Clock", "text": "value.gpu_memory_clock"},
+        {"sensor": "GPU Core Voltage"},
+        {"sensor": "GPU Memory Used"},
+        {"sensor": "GPU Memory Free"},
+        {"sensor": "GPU Memory Total"},
+        {"sensor": "GPU PCIe Rx"},
+        {"sensor": "GPU PCIe Tx"},
+        {"section": "section.fans", "one_row": true, "values": [
+          {"sensor": "GPU Fan*", "type": "Fan"},
+          {"sensor": "GPU Fan*", "type": "Control"}
+        ]}
+      ]},
+      {"device": "gpu", "name": "Intel*", "values": [
+        {"sensor": "GPU Power", "type": "Power"},
+        {"sensor": "D3D 3D"},
+        {"sensor": "D3D Dedicated Memory Used"},
+        {"sensor": "D3D Shared Memory Used"},
+        {"sensor": "D3D Shared Memory Free"},
+        {"sensor": "D3D Shared Memory Total"}
+      ]}
+    ]},
+    {"title": "tab.ram", "groups": [
+      {"device": "ram", "name": "Total Memory", "title": "title.memory", "values": [
+        {"sensor": "Memory", "type": "Load", "text": "value.load"},
+        {"sensor": "Memory Used"},
+        {"sensor": "Memory Available"}
+      ]},
+      {"device": "ram", "name": "Virtual Memory", "title": "title.with_page_file", "values": [
+        {"sensor": "Memory", "type": "Load", "text": "value.load"},
+        {"sensor": "Memory Used"},
+        {"sensor": "Memory Available"}
+      ]},
+      {"device": "ram", "values": [
+        {"sensor": "DIMM #*"},
+        {"sensor": "Capacity"}
+      ]}
+    ]},
+    {"title": "tab.motherboard", "groups": [
+      {"device": "motherboard", "values": [
+        {"sensor": "CPU", "type": "Temperature"},
+        {"sensor": "Motherboard"},
+        {"sensor": "VRM"},
+        {"sensor": "Auxiliary*"},
+        {"sensor": "Vcore"},
+        {"sensor": "+12V"},
+        {"sensor": "+5V"},
+        {"sensor": "+3.3V"},
+        {"sensor": "+3V Standby"},
+        {"sensor": "+1.8V"},
+        {"sensor": "Chipset 1.05V"},
+        {"section": "section.fans", "one_row": true, "values": [
+          {"sensor": "*Fan*", "type": "Fan"},
+          {"sensor": "*Pump*", "type": "Fan"},
+          {"sensor": "*Fan*", "type": "Control"},
+          {"sensor": "*Pump*", "type": "Control"}
+        ]}
+      ]}
+    ]},
+    {"title": "tab.drives", "groups": [
+      {"device": "drive", "values": [
+        {"sensor": "Composite Temperature"},
+        {"sensor": "Temperature"},
+        {"sensor": "Temperature #*"},
+        {"sensor": "Warning Temperature"},
+        {"sensor": "Critical Temperature"},
+        {"sensor": "Used Space"},
+        {"sensor": "Free Space"},
+        {"sensor": "Total Space"},
+        {"sensor": "Read Rate"},
+        {"sensor": "Write Rate"},
+        {"sensor": "Total Activity"},
+        {"sensor": "Life"},
+        {"sensor": "Percentage Used"},
+        {"sensor": "Available Spare"},
+        {"sensor": "Available Spare Threshold"},
+        {"sensor": "Data Read"},
+        {"sensor": "Data Written"},
+        {"sensor": "Power On Count"},
+        {"sensor": "Power On Hours"}
+      ]}
+    ]},
+    {"title": "tab.network", "groups": [
+      {"device": "network", "values": [
+        {"sensor": "Download Speed"},
+        {"sensor": "Upload Speed"},
+        {"sensor": "Network Utilization"},
+        {"sensor": "Data Downloaded"},
+        {"sensor": "Data Uploaded"}
+      ]}
+    ]},
+    {"title": "tab.battery", "groups": [
+      {"device": "battery", "values": [
+        {"sensor": "Charge Level"},
+        {"sensor": "Remaining Capacity"},
+        {"sensor": "Remaining Time*"},
+        {"sensor": "*Rate", "type": "Power"},
+        {"sensor": "*Current"},
+        {"sensor": "Voltage"},
+        {"sensor": "Fully-Charged Capacity"},
+        {"sensor": "Designed Capacity"},
+        {"sensor": "Degradation Level"},
+        {"sensor": "Cycle Count"}
+      ]}
+    ]},
+    {"title": "tab.power", "view": "power"},
+    {"title": "tab.fans", "view": "fans"},
+    {"title": "tab.health", "view": "health"},
+    {"title": "tab.hardware_data", "view": "hardware_data"}
+  ],
+  "explanations": [
+    ["Temperature", "Core \\(Tctl/Tdie\\)", "explain.temp.tctl_tdie"],
+    ["Temperature", "Core \\(Tctl\\)", "explain.temp.tctl"],
+    ["Temperature", "Core \\(Tdie\\)", "explain.temp.tdie"],
+    ["Temperature", "CCD(\\d+) \\(Tdie\\)", "explain.temp.ccd"],
+    ["Temperature", "CCDs Max \\(Tdie\\)", "explain.temp.ccds_max"],
+    ["Temperature", "CCDs Average \\(Tdie\\)", "explain.temp.ccds_average"],
+    ["Temperature", "SoC", "explain.temp.soc"],
+    ["Temperature", "CPU Package", "explain.temp.cpu_package"],
+    ["Temperature", "Core Max", "explain.temp.core_max"],
+    ["Temperature", "Core Average", "explain.temp.core_average"],
+    ["Temperature", "CPU Core #(\\d+)", "explain.temp.cpu_core"],
+    ["Temperature", "(?:.* )?Distance to TjMax", "explain.temp.distance_tjmax"],
+    ["Temperature", "GPU Core", "explain.temp.gpu_core"],
+    ["Temperature", "GPU Hot Spot", "explain.temp.gpu_hot_spot"],
+    ["Temperature", "GPU Memory Junction", "explain.temp.gpu_memory_junction"],
+    ["Temperature", "GPU Memory", "explain.temp.gpu_memory"],
+    ["Temperature", "GPU VR .+", "explain.temp.gpu_vr"],
+    ["Temperature", "GPU Liquid", "explain.temp.gpu_liquid"],
+    ["Temperature", "CPU", "explain.temp.motherboard_cpu"],
+    ["Temperature", "System|Motherboard", "explain.temp.system"],
+    ["Temperature", "PCH|Chipset", "explain.temp.chipset"],
+    ["Temperature", "VRM.*", "explain.temp.vrm"],
+    ["Temperature", "Temperature #(\\d+)", "explain.temp.unnamed"],
+    ["Temperature", "Temperature( \\d+)?", "explain.temp.drive"],
+    ["Temperature", "Composite Temperature", "explain.temp.composite"],
+    ["Temperature", "Warning Temperature", "explain.temp.warning"],
+    ["Temperature", "Critical Temperature", "explain.temp.critical"],
+    ["Load", "CPU Total", "explain.load.cpu_total"],
+    ["Load", "CPU Core Max", "explain.load.cpu_core_max"],
+    ["Load", "CPU Core #(\\d+)(?: Thread #(\\d+))?", "explain.load.cpu_core"],
+    ["Load", "GPU Core", "explain.load.gpu_core"],
+    ["Load", "GPU Memory Controller", "explain.load.gpu_memory_controller"],
+    ["Load", "GPU Video Engine", "explain.load.gpu_video_engine"],
+    ["Load", "GPU Bus", "explain.load.gpu_bus"],
+    ["Load", "GPU Memory", "explain.load.gpu_memory"],
+    ["Load", "D3D .+", "explain.load.d3d"],
+    ["Load", "Memory", "explain.load.memory"],
+    ["Load", "Virtual Memory", "explain.load.virtual_memory"],
+    ["Load", "Used Space", "explain.load.used_space"],
+    ["Load", "(Total|Read|Write) Activity", "explain.load.activity"],
+    ["Load", "Network Utilization", "explain.load.network"],
+    ["Clock", "(?:CPU )?Core #(\\d+)", "explain.clock.cpu_core"],
+    ["Clock", "Bus Speed", "explain.clock.bus"],
+    ["Clock", "Cores \\(Average.*\\)", "explain.clock.cores_average"],
+    ["Clock", "GPU Core", "explain.clock.gpu_core"],
+    ["Clock", "GPU Memory", "explain.clock.gpu_memory"],
+    ["Clock", "GPU Shader", "explain.clock.gpu_shader"],
+    ["Power", "(CPU )?Package", "explain.power.package"],
+    ["Power", "Core #(\\d+) \\(SMU\\)", "explain.power.core_smu"],
+    ["Power", "(?:CPU )?Cores", "explain.power.cores"],
+    ["Power", "SoC", "explain.power.soc"],
+    ["Power", "CPU Memory", "explain.power.cpu_memory"],
+    ["Power", "CPU Platform", "explain.power.platform"],
+    ["Power", "GPU (Package|Power)", "explain.power.gpu"],
+    ["Power", "Discharge Rate", "explain.power.discharging"],
+    ["Power", "Charge Rate", "explain.power.charging"],
+    ["Voltage", "Core \\(SVI\\d? ?TFN\\)", "explain.voltage.core_svi"],
+    ["Voltage", "SoC \\(SVI\\d? ?TFN\\)", "explain.voltage.soc_svi"],
+    ["Voltage", "Vcore|CPU VCore", "explain.voltage.vcore"],
+    ["Voltage", "CPU Core", "explain.voltage.cpu_core"],
+    ["Voltage", "CPU Core #(\\d+)", "explain.voltage.cpu_core_nr"],
+    ["Voltage", "\\+?(12|5|3[.,]3)V", "explain.voltage.psu_rail"],
+    ["Voltage", "VBat|Vbat|CMOS Battery|Battery", "explain.voltage.cmos"],
+    ["Voltage", "GPU Core", "explain.voltage.gpu_core"],
+    ["Voltage", "Voltage", "explain.voltage.battery"],
+    ["Current", "Discharge Current", "explain.battery.discharge_current"],
+    ["Current", "Charge Current", "explain.battery.charge_current"],
+    ["Energy", "Remaining Capacity", "explain.battery.remaining"],
+    ["Energy", "Fully-Charged Capacity", "explain.battery.full_charge"],
+    ["Energy", "Designed Capacity", "explain.battery.design"],
+    ["TimeSpan", "Remaining Time.*", "explain.battery.remaining_time"],
+    ["Fan", "GPU Fan( \\d+)?", "explain.fan.gpu"],
+    ["Fan", "Fan #(\\d+)", "explain.fan.motherboard"],
+    ["Fan", "Pump.*", "explain.fan.pump"],
+    ["Control", "GPU Fan( \\d+)?", "explain.fan.gpu_control"],
+    ["Control", "Fan( Control)? #(\\d+)", "explain.fan.motherboard_control"],
+    ["Data", "Memory Used", "explain.data.memory_used"],
+    ["Data", "Memory Available", "explain.data.memory_available"],
+    ["Data", "Virtual Memory Used", "explain.data.virtual_used"],
+    ["Data", "Virtual Memory Available", "explain.data.virtual_available"],
+    ["Data", "Data Read", "explain.data.read"],
+    ["Data", "Data Written", "explain.data.written"],
+    ["Data", "Data Uploaded", "explain.data.uploaded"],
+    ["Data", "Data Downloaded", "explain.data.downloaded"],
+    ["SmallData", "GPU Memory Used", "explain.data.gpu_used"],
+    ["SmallData", "GPU Memory Free", "explain.data.gpu_free"],
+    ["SmallData", "GPU Memory Total", "explain.data.gpu_total"],
+    ["SmallData", "D3D Dedicated Memory Used", "explain.data.d3d_dedicated"],
+    ["SmallData", "D3D Shared Memory Used", "explain.data.d3d_shared_used"],
+    ["SmallData", "D3D Shared Memory Free", "explain.data.d3d_shared_free"],
+    ["SmallData", "D3D Shared Memory Total", "explain.data.d3d_shared_total"],
+    ["Throughput", "Read Rate", "explain.throughput.read"],
+    ["Throughput", "Write Rate", "explain.throughput.write"],
+    ["Throughput", "Upload Speed", "explain.throughput.upload"],
+    ["Throughput", "Download Speed", "explain.throughput.download"],
+    ["Throughput", "GPU PCIe Rx", "explain.throughput.pcie_rx"],
+    ["Throughput", "GPU PCIe Tx", "explain.throughput.pcie_tx"],
+    ["Level", "Available Spare", "explain.level.spare"],
+    ["Level", "Available Spare Threshold", "explain.level.spare_threshold"],
+    ["Level", "Life", "explain.level.life"],
+    ["Level", "Percentage Used", "explain.level.used"],
+    ["Level", "Charge Level", "explain.level.charge_level"],
+    ["Level", "Degradation Level", "explain.level.wear"],
+    ["Factor", "Power On Count", "explain.counter.power_on_count"],
+    ["Factor", "Power On Hours", "explain.counter.power_on_hours"]
+  ],
+  "type_explanations": {
+    "Temperature": "explain.type.Temperature",
+    "Load": "explain.type.Load",
+    "Clock": "explain.type.Clock",
+    "Power": "explain.type.Power",
+    "Voltage": "explain.type.Voltage",
+    "Current": "explain.type.Current",
+    "Energy": "explain.type.Energy",
+    "TimeSpan": "explain.type.TimeSpan",
+    "Fan": "explain.type.Fan",
+    "Control": "explain.type.Control",
+    "Data": "explain.type.Data",
+    "SmallData": "explain.type.SmallData",
+    "Throughput": "explain.type.Throughput",
+    "Level": "explain.type.Level"
+  }
+}

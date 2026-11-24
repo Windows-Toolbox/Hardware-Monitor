@@ -1,7 +1,7 @@
 //! What the bridge reads, and the choices made from it: which temperature goes into the taskbar, which sensor is
 //! the CPU's or the graphics card's power, which fans can be controlled. Ported from `python\hardware_monitor.py`.
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 /// With "auto": the first of these that exists (the same lists as the Python part).
 pub const CPU_SENSORS: [&str; 3] = ["Core (Tctl/Tdie)", "CPU Package", "Core Average"];
@@ -17,7 +17,7 @@ pub const LATER_GROUPS: [&str; 8] = [
     "IsNetworkEnabled", "IsPsuEnabled", "IsBatteryEnabled", "IsPowerMonitorEnabled",
 ];
 
-#[derive(Deserialize, Debug, Clone, PartialEq, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct Control {
     pub min: f64,
     pub max: f64,
@@ -25,7 +25,7 @@ pub struct Control {
     pub mode: String,
 }
 
-#[derive(Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Sensor {
     pub id: String,
     #[serde(rename = "type")]
@@ -37,7 +37,7 @@ pub struct Sensor {
 }
 
 /// One device or sub-device as the bridge sends it (a sub-device after its parent).
-#[derive(Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Hardware {
     pub id: String,
     #[serde(rename = "type")]
@@ -48,11 +48,11 @@ pub struct Hardware {
     #[serde(default)]
     pub sensors: Vec<Sensor>,
     /// Filled in by `Reading::parse`: "cpu", "gpu", "ram", "motherboard", "drive", "network", "battery", "other" –
-    /// the device of its top-level hardware.
-    #[serde(skip)]
+    /// the device of its top-level hardware. (The bridge does not send it; the window gets it filled in.)
+    #[serde(default)]
     pub device: String,
     /// The top-level hardware's name ("" for a top-level one).
-    #[serde(skip)]
+    #[serde(default)]
     pub top_name: String,
 }
 
@@ -95,6 +95,10 @@ pub struct Reading {
 impl Reading {
     pub fn parse(answer: &serde_json::Value) -> Reading {
         let mut hardware: Vec<Hardware> = serde_json::from_value(answer["hardware"].clone()).unwrap_or_default();
+        for h in &mut hardware {
+            h.device.clear();
+            h.top_name.clear();
+        }
         for i in 0..hardware.len() {
             let parent = hardware[i].parent.clone().and_then(|p| hardware[..i].iter().find(|h| h.id == p).cloned());
             let (device, top_name) = match parent {

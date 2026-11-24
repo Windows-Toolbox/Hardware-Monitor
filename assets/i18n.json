@@ -523,10 +523,6 @@
     "de": "Privacy mode: aus",
     "en": "Privacy mode: off"
   },
-  "toast.no_window_yet": {
-    "de": "Das Detailfenster kommt in der Rust-Version erst noch.",
-    "en": "The detail window is still to come in the Rust version."
-  },
   "message.bridge_not_set_up": {
     "de": "Die Brücke ist noch nicht eingerichtet – „Einrichten“ unter „Sensoren für die Rust-Version“.",
     "en": "The bridge is not set up yet – “Set up” under “Sensors for the Rust version”."
@@ -534,5 +530,1489 @@
   "message.bridge_lost": {
     "de": "Die Brücke hat aufgehört zu antworten ({why}) – neuer Versuch in 10 s.",
     "en": "The bridge stopped answering ({why}) – trying again in 10 s."
+  },
+  "program.name": {
+    "de": "Hardware-Monitor",
+    "en": "Hardware Monitor"
+  },
+  "menu.copy_value": {
+    "de": "Wert kopieren",
+    "en": "Copy value"
+  },
+  "menu.copy_name": {
+    "de": "Namen kopieren",
+    "en": "Copy name"
+  },
+  "menu.copy_selected": {
+    "de": "Markierte Zeilen kopieren",
+    "en": "Copy selected rows"
+  },
+  "menu.select_all": {
+    "de": "Alles markieren",
+    "en": "Select all"
+  },
+  "menu.ctrl_c": {
+    "de": "Strg+C",
+    "en": "Ctrl+C"
+  },
+  "menu.ctrl_a": {
+    "de": "Strg+A",
+    "en": "Ctrl+A"
+  },
+  "window.hint": {
+    "de": "Klick auf einen Wert oder Gerätenamen kopiert ihn. Mehrere Zeilen: markieren (ziehen, Strg- oder Umschalt+Klick, Strg+A) und mit Strg+C kopieren. Maus über einen Wert erklärt ihn.",
+    "en": "Click a value or device name to copy it. Several rows: select them (drag, Ctrl+click or Shift+click, Ctrl+A) and copy with Ctrl+C. Hover over a value for an explanation."
+  },
+  "window.gear": {
+    "de": "Einstellungen des Hardware-Monitors – öffnet seine Seite in der Toolbox (startet sie, falls nötig).",
+    "en": "Hardware Monitor settings – opens its page in the Toolbox (starts it if needed)."
+  },
+  "window.privacy": {
+    "de": "Privacy mode",
+    "en": "Privacy mode"
+  },
+  "window.privacy.on_help": {
+    "de": "Privacy mode ist an: Seriennummern, MAC-Adressen, die Prozessor-ID und der Computername sind verborgen (████████) – auf dem Bildschirm, beim Kopieren und im Fenstertitel. Klicken, um sie wieder zu zeigen.",
+    "en": "Privacy mode is on: serial numbers, MAC addresses, the processor ID and the computer name are hidden (████████) – on screen, when copying and in the window title. Click to show them again."
+  },
+  "window.privacy.off_help": {
+    "de": "Privacy mode ist aus. Klicken, um Seriennummern, MAC-Adressen, die Prozessor-ID und den Computernamen zu verbergen – auf dem Bildschirm und beim Kopieren, z. B. für Screenshots oder Forenbeiträge.",
+    "en": "Privacy mode is off. Click to hide serial numbers, MAC addresses, the processor ID and the computer name – on screen and when copying, e.g. for screenshots or forum posts."
+  },
+  "window.privacy.hidden": {
+    "de": "Vom Privacy mode verborgen – ein Klick kopiert ████████, nicht den echten Wert.",
+    "en": "Hidden by privacy mode – a click copies ████████, not the real value."
+  },
+  "window.live": {
+    "de": "Live",
+    "en": "Live"
+  },
+  "window.loading": {
+    "de": "Daten werden geladen …",
+    "en": "Loading data …"
+  },
+  "window.loading_sensors": {
+    "de": "Lade Sensordaten …",
+    "en": "Loading sensor data …"
+  },
+  "window.no_sensors": {
+    "de": "Keine passenden Sensoren – die Namen zeigt „python hardware_monitor.py --list“.",
+    "en": "No matching sensors – \"python hardware_monitor.py --list\" shows the names."
+  },
+  "window.content_error": {
+    "de": "Fehler in detail_window_content.py (Details im Log): {error}",
+    "en": "Error in detail_window_content.py (details in the log): {error}"
+  },
+  "window.toolbox_error": {
+    "de": "Toolbox ließ sich nicht öffnen – Details im Log",
+    "en": "Couldn't open the Toolbox – details in the log"
+  },
+  "window.click_value": {
+    "de": "Klick auf den Wert kopiert ihn.",
+    "en": "Click the value to copy it."
+  },
+  "window.click_name": {
+    "de": "Klick auf den Namen kopiert „{name}“.",
+    "en": "Click the name to copy \"{name}\"."
+  },
+  "window.the_bar": {
+    "de": "Der Balken: {text}",
+    "en": "The bar: {text}"
+  },
+  "window.stopped_explained": {
+    "de": "„steht“: Der Anschluss wird angesteuert, aber nichts dreht sich – meist ist dort kein Lüfter angeschlossen, oder er stoppt gerade im Leerlauf.",
+    "en": "\"stopped\": the header is being driven, but nothing is spinning – usually no fan is connected there, or it is stopped while idle."
+  },
+  "window.copied": {
+    "de": "„{text}“ kopiert",
+    "en": "Copied \"{text}\""
+  },
+  "window.one_row_copied": {
+    "de": "1 Zeile kopiert",
+    "en": "Copied 1 row"
+  },
+  "window.rows_copied": {
+    "de": "{n} Zeilen kopiert",
+    "en": "Copied {n} rows"
+  },
+  "window.nothing_selected": {
+    "de": "Nichts markiert – Zeilen anklicken oder mit gedrückter Maustaste darüberziehen.",
+    "en": "Nothing selected – click rows or drag across them with the mouse button held down."
+  },
+  "value.stopped": {
+    "de": "steht",
+    "en": "stopped"
+  },
+  "tab.temperatures": {
+    "de": "Temperaturen",
+    "en": "Temperatures"
+  },
+  "tab.cpu": {
+    "de": "CPU",
+    "en": "CPU"
+  },
+  "tab.gpu": {
+    "de": "GPU",
+    "en": "GPU"
+  },
+  "tab.ram": {
+    "de": "RAM",
+    "en": "RAM"
+  },
+  "tab.motherboard": {
+    "de": "Mainboard",
+    "en": "Motherboard"
+  },
+  "tab.drives": {
+    "de": "Laufwerke",
+    "en": "Drives"
+  },
+  "tab.network": {
+    "de": "Netzwerk",
+    "en": "Network"
+  },
+  "tab.battery": {
+    "de": "Akku",
+    "en": "Battery"
+  },
+  "tab.power": {
+    "de": "Strom",
+    "en": "Power"
+  },
+  "tab.fans": {
+    "de": "Lüfter",
+    "en": "Fans"
+  },
+  "tab.health": {
+    "de": "Laufwerkszustand",
+    "en": "Drive health"
+  },
+  "tab.hardware_data": {
+    "de": "Hardwaredaten",
+    "en": "Hardware data"
+  },
+  "tab.all": {
+    "de": "Alles",
+    "en": "All"
+  },
+  "power.view.day": {
+    "de": "24 Stunden",
+    "en": "24 hours"
+  },
+  "power.view.month": {
+    "de": "30 Tage",
+    "en": "30 days"
+  },
+  "power.view.year": {
+    "de": "12 Monate",
+    "en": "12 months"
+  },
+  "power.copy_table": {
+    "de": "Tabelle kopieren",
+    "en": "Copy table"
+  },
+  "power.copy_table.help": {
+    "de": "Kopiert die Balken des Diagramms als Tabelle (Zeitraum, kWh, Kosten, gemessene Zeit) – durch Tabs getrennt, z. B. für Excel.",
+    "en": "Copies the bars of the chart as a table (period, kWh, cost, measured time) – tab-separated, e.g. for Excel."
+  },
+  "power.hint": {
+    "de": "Mit der Maus über einen Balken: seine Werte. Geschätzt: CPU und Grafikkarte werden gemessen, der Rest des PCs ist ein fester Wert (Einstellungen auf der Toolbox-Seite, ⚙).",
+    "en": "Hover over a bar for its values. Estimated: CPU and graphics card are measured, the rest of the PC is a fixed value (settings on the Toolbox page, ⚙)."
+  },
+  "power.tile.now": {
+    "de": "Jetzt",
+    "en": "Now"
+  },
+  "power.tile.today": {
+    "de": "Heute",
+    "en": "Today"
+  },
+  "power.tile.month": {
+    "de": "Diesen Monat",
+    "en": "This month"
+  },
+  "power.tile.uptime": {
+    "de": "PC läuft seit",
+    "en": "PC on for"
+  },
+  "power.on_battery": {
+    "de": "im Akkubetrieb, gemessen",
+    "en": "on battery, measured"
+  },
+  "power.measuring": {
+    "de": "wird gemessen …",
+    "en": "measuring …"
+  },
+  "power.since": {
+    "de": "seit {time}",
+    "en": "since {time}"
+  },
+  "power.note.off": {
+    "de": "Das Mitschreiben ist aus, darum bleibt das Diagramm leer. Schalte „Stromverbrauch mitschreiben“ auf der Toolbox-Seite ein (⚙ oben rechts) – ab dann wird der Verbrauch zusammengezählt, solange der Hardware Monitor läuft.",
+    "en": "Logging is off, so the chart stays empty. Switch on \"Log power consumption\" on the Toolbox page (⚙ at the top right) – from then on the consumption is added up while the Hardware Monitor runs."
+  },
+  "power.note.empty": {
+    "de": "Das Mitschreiben ist an – die ersten Werte erscheinen in wenigen Sekunden im Diagramm.",
+    "en": "Logging is on – the first values appear in the chart within a few seconds."
+  },
+  "power.note.on": {
+    "de": "Mitgeschrieben seit {since}, solange der Hardware Monitor läuft (geschätzt – die Toolbox-Seite erklärt, wie).",
+    "en": "Logged since {since} while the Hardware Monitor runs (estimated – the Toolbox page explains how)."
+  },
+  "power.chart.day": {
+    "de": "Energie pro Stunde – letzte 24 Stunden",
+    "en": "Energy per hour – last 24 hours"
+  },
+  "power.chart.month": {
+    "de": "Energie pro Tag – letzte 30 Tage",
+    "en": "Energy per day – last 30 days"
+  },
+  "power.chart.year": {
+    "de": "Energie pro Monat – letzte 12 Monate",
+    "en": "Energy per month – last 12 months"
+  },
+  "power.help.now": {
+    "de": "Geschätzte Leistung an der Steckdose: CPU {cpu} W + Grafikkarte {gpu} W + übrige Komponenten {other} W, geteilt durch den Wirkungsgrad des Netzteils von {efficiency} % = {watts} W.",
+    "en": "Estimated power at the socket: CPU {cpu} W + graphics card {gpu} W + other components {other} W, divided by the power supply efficiency of {efficiency} % = {watts} W."
+  },
+  "power.help.battery": {
+    "de": "Im Akkubetrieb: so viel zieht der ganze Laptop gerade, vom Akku gemessen.",
+    "en": "Running on battery: this is what the whole laptop draws right now, measured by the battery."
+  },
+  "power.help.today": {
+    "de": "Heute mitgeschriebene Energie und was sie zum Preis aus den Einstellungen kostet.",
+    "en": "Energy logged today and what it costs at the price from the settings."
+  },
+  "power.help.month": {
+    "de": "Diesen Monat mitgeschriebene Energie und was sie zum Preis aus den Einstellungen kostet.",
+    "en": "Energy logged this month and what it costs at the price from the settings."
+  },
+  "power.help.uptime": {
+    "de": "Wie lange Windows schon läuft – dasselbe wie „Betriebszeit“ im Task-Manager. Mit dem Schnellstart setzt ein normales Herunterfahren das nicht zurück, nur ein Neustart.",
+    "en": "How long Windows has been running – the same as \"Up time\" in Task Manager. With Fast Startup a normal shutdown doesn't reset it, only a restart does."
+  },
+  "power.bar": {
+    "de": "{period}: {energy} · {cost} · gemessen {measured}",
+    "en": "{period}: {energy} · {cost} · measured {measured}"
+  },
+  "power.bar.empty": {
+    "de": "{period}: nichts mitgeschrieben (PC aus, Hardware Monitor lief nicht oder Mitschreiben aus)",
+    "en": "{period}: nothing logged (PC off, Hardware Monitor not running or logging off)"
+  },
+  "power.table.period": {
+    "de": "Zeitraum",
+    "en": "Period"
+  },
+  "power.table.cost": {
+    "de": "Kosten",
+    "en": "Cost"
+  },
+  "power.table.measured": {
+    "de": "Gemessen",
+    "en": "Measured"
+  },
+  "power.table.copied": {
+    "de": "{n} Zeilen als Tabelle kopiert",
+    "en": "Copied {n} rows as a table"
+  },
+  "fans.note.intro": {
+    "de": "Auto = die Grafikkarte oder das BIOS regelt den Lüfter, wie ohne dieses Programm. Kurve: die Drehzahl folgt einer Temperatur. Fest: immer dieselbe Drehzahl. Ab der roten Temperaturgrenze läuft ein gesteuerter Lüfter immer mit 100 %; beim Beenden geht jeder Lüfter zurück an die Automatik.",
+    "en": "Auto = the graphics card or the BIOS controls the fan, as without this program. Curve: the speed follows a temperature. Fixed: always the same speed. From the red temperature limit on, a controlled fan always runs at 100 %; when quitting, every fan is handed back."
+  },
+  "fans.note.none": {
+    "de": "LibreHardwareMonitor kann auf diesem PC keinen Lüfter steuern – die Grafikkarte oder der Chip auf dem Mainboard lässt es nicht zu, oder die Brücke läuft ohne Admin-Rechte.",
+    "en": "LibreHardwareMonitor can't control any fan on this PC – the graphics card or the chip on the motherboard doesn't allow it, or the Hardware Monitor runs without admin rights."
+  },
+  "fans.note.crashed": {
+    "de": "⚠ Der Hardware Monitor endete beim letzten Mal, während er Lüfter steuerte (Absturz oder im Task-Manager beendet). Sie behielten bis jetzt ihre letzte Drehzahl – ein Neustart von Windows setzt sie sicher zurück.",
+    "en": "⚠ The Hardware Monitor ended last time while it controlled fans (crash, or ended in Task Manager). Until now they kept their last speed – a restart of Windows resets them for sure."
+  },
+  "fans.list.help": {
+    "de": "Klicke einen Lüfter an, um ihn unten einzustellen. Alle Lüfter einer Grafikkarte folgen gemeinsam einer Kurve.",
+    "en": "Click a fan to set it below. All fans of a graphics card follow one curve together."
+  },
+  "fans.gpu_fans": {
+    "de": "{name} – Lüfter",
+    "en": "{name} – fans"
+  },
+  "fans.mode": {
+    "de": "Modus",
+    "en": "Mode"
+  },
+  "fans.mode.auto": {
+    "de": "Auto",
+    "en": "Auto"
+  },
+  "fans.mode.curve": {
+    "de": "Kurve",
+    "en": "Curve"
+  },
+  "fans.mode.fixed": {
+    "de": "Fest",
+    "en": "Fixed"
+  },
+  "fans.mode.auto.help": {
+    "de": "Auto: die Grafikkarte oder das BIOS regelt diesen Lüfter – wie ohne den Hardware Monitor.",
+    "en": "Auto: the graphics card or the BIOS controls this fan – as without the Hardware Monitor."
+  },
+  "fans.mode.curve.help": {
+    "de": "Kurve: die Drehzahl folgt der Temperatur entlang der Kurve unten.",
+    "en": "Curve: the speed follows the temperature along the curve below."
+  },
+  "fans.mode.fixed.help": {
+    "de": "Fest: immer diese Drehzahl – außer ab der roten Temperaturgrenze, dann 100 %.",
+    "en": "Fixed: always this speed – except from the red temperature limit on, then 100 %."
+  },
+  "fans.source": {
+    "de": "Temperatur",
+    "en": "Temperature"
+  },
+  "fans.source.gpu": {
+    "de": "GPU",
+    "en": "GPU"
+  },
+  "fans.source.cpu": {
+    "de": "CPU",
+    "en": "CPU"
+  },
+  "fans.source.max": {
+    "de": "Höchste",
+    "en": "Highest"
+  },
+  "fans.source.help": {
+    "de": "Welcher Temperatur der Lüfter folgt: GPU, CPU oder der höheren von beiden (gut für Gehäuselüfter). Es ist der Sensor der Taskleiste; seine rote Grenze schaltet auf 100 %.",
+    "en": "Which temperature the fan follows: GPU, CPU or the higher of the two (good for case fans). It's the sensor of the taskbar icons; its red limit switches to 100 %."
+  },
+  "fans.reset_curve": {
+    "de": "Standardkurve",
+    "en": "Default curve"
+  },
+  "fans.reset_curve.help": {
+    "de": "Ersetzt die Kurve durch eine leise Standardkurve.",
+    "en": "Replaces the curve with a quiet default curve."
+  },
+  "fans.red_limit": {
+    "de": "100 % ab {temp} °C",
+    "en": "100 % from {temp} °C"
+  },
+  "fans.live": {
+    "de": "Jetzt {temp} °C → Kurve {curve} % · gesetzt: {applied}",
+    "en": "Now {temp} °C → curve {curve} % · set: {applied}"
+  },
+  "fans.state.hot": {
+    "de": "rote Grenze: 100 %",
+    "en": "red limit: 100 %"
+  },
+  "fans.state.no_temperature": {
+    "de": "keine Temperatur – zurückgegeben",
+    "en": "no temperature – handed back"
+  },
+  "fans.state.error": {
+    "de": "lässt sich nicht steuern – zurückgegeben",
+    "en": "can't be controlled – handed back"
+  },
+  "fans.point.help": {
+    "de": "Punkt: {temp} °C → {pct} %. Ziehen zum Verschieben, Rechtsklick zum Entfernen.",
+    "en": "Point: {temp} °C → {pct} %. Drag to move it, right-click to remove it."
+  },
+  "fans.editor.help": {
+    "de": "Einen Punkt ziehen zum Verschieben, Doppelklick fügt einen hinzu, Rechtsklick auf einen Punkt entfernt ihn. Änderungen gelten sofort.",
+    "en": "Drag a point to move it, double-click to add one, right-click a point to remove it. Changes apply right away."
+  },
+  "fans.minimum": {
+    "de": "Dieser Lüfter läuft nicht langsamer als {pct} %, solange er gesteuert wird (als Linie im Diagramm).",
+    "en": "This fan doesn't run slower than {pct} % while it's controlled (shown as a line in the chart)."
+  },
+  "fans.minimum.gpu": {
+    "de": "Die Grafikkarte erlaubt gesteuert nicht weniger als {pct} % (Linie im Diagramm). In Auto kann sie ihre Lüfter im Leerlauf ganz anhalten (0 RPM) – im Leerlauf meist leiser als jede Kurve.",
+    "en": "The graphics card doesn't allow less than {pct} % while it's controlled (line in the chart). In Auto it can stop its fans completely when idle (0 RPM) – at idle that's usually quieter than any curve."
+  },
+  "health.status.good": {
+    "de": "Gut",
+    "en": "Good"
+  },
+  "health.status.caution": {
+    "de": "Vorsicht",
+    "en": "Caution"
+  },
+  "health.status.bad": {
+    "de": "Schlecht",
+    "en": "Bad"
+  },
+  "health.status.unknown": {
+    "de": "Unbekannt",
+    "en": "Unknown"
+  },
+  "health.with_life": {
+    "de": "{status} ({life} % Restlebensdauer)",
+    "en": "{status} ({life} % life left)"
+  },
+  "health.hdd": {
+    "de": "HDD",
+    "en": "HDD"
+  },
+  "health.field.status": {
+    "de": "Zustand",
+    "en": "Health status"
+  },
+  "health.field.temp": {
+    "de": "Temperatur",
+    "en": "Temperature"
+  },
+  "health.field.firmware": {
+    "de": "Firmware",
+    "en": "Firmware"
+  },
+  "health.field.interface": {
+    "de": "Schnittstelle",
+    "en": "Interface"
+  },
+  "health.field.serial": {
+    "de": "Seriennummer",
+    "en": "Serial number"
+  },
+  "health.field.size": {
+    "de": "Größe",
+    "en": "Size"
+  },
+  "health.field.hours": {
+    "de": "Betriebsstunden",
+    "en": "Power-on hours"
+  },
+  "health.field.count": {
+    "de": "Einschaltvorgänge",
+    "en": "Power-on count"
+  },
+  "health.field.reads": {
+    "de": "Gelesen (Host)",
+    "en": "Host reads"
+  },
+  "health.field.writes": {
+    "de": "Geschrieben (Host)",
+    "en": "Host writes"
+  },
+  "health.col.id": {
+    "de": "ID",
+    "en": "ID"
+  },
+  "health.col.attribute": {
+    "de": "Attribut",
+    "en": "Attribute"
+  },
+  "health.col.current": {
+    "de": "Aktuell",
+    "en": "Current"
+  },
+  "health.col.worst": {
+    "de": "Schlechtester",
+    "en": "Worst"
+  },
+  "health.col.threshold": {
+    "de": "Grenzwert",
+    "en": "Threshold"
+  },
+  "health.col.raw": {
+    "de": "Rohwerte",
+    "en": "Raw values"
+  },
+  "health.copy": {
+    "de": "Kopieren",
+    "en": "Copy"
+  },
+  "health.copy.help": {
+    "de": "Kopiert die Daten und die SMART-Tabelle dieses Laufwerks als Text (im Privacy mode ohne Seriennummer).",
+    "en": "Copies the data and the SMART table of this drive as text (in privacy mode without the serial number)."
+  },
+  "health.copied": {
+    "de": "Daten von {model} kopiert",
+    "en": "Copied the data of {model}"
+  },
+  "health.list.help": {
+    "de": "Klicke ein Laufwerk an, um unten seine Daten und SMART-Werte zu sehen.",
+    "en": "Click a drive to see its data and SMART values below."
+  },
+  "health.hint": {
+    "de": "Zustand wie CrystalDiskInfo: Gut · Vorsicht (z. B. umgelagerte, schwebende oder nicht korrigierbare Sektoren einer Festplatte) · Schlecht (ein Wert unter seinem Grenzwert, oder das Laufwerk meldet eine kritische Warnung). Rohwerte sind hexadezimal. Wird alle 10 s neu gelesen, solange dieser Tab offen ist.",
+    "en": "Status like CrystalDiskInfo: Good · Caution (e.g. reallocated, pending or uncorrectable sectors on a hard disk) · Bad (a value below its threshold, or the drive reports a critical warning). Raw values are hexadecimal. Read again every 10 s while this tab is open."
+  },
+  "health.reading": {
+    "de": "Laufwerkszustand wird gelesen …",
+    "en": "Reading the drive health …"
+  },
+  "health.none": {
+    "de": "Keine Laufwerke gefunden – den Zustand zu lesen braucht Admin-Rechte (die Brücke hat sie normalerweise).",
+    "en": "No drives found – reading the health needs admin rights (the Hardware Monitor normally has them)."
+  },
+  "section.fans": {
+    "de": "Lüfter",
+    "en": "Fans"
+  },
+  "value.load": {
+    "de": "Auslastung",
+    "en": "Load"
+  },
+  "value.gpu_core_load": {
+    "de": "GPU Core Auslastung",
+    "en": "GPU Core Load"
+  },
+  "value.gpu_core_clock": {
+    "de": "GPU Core Takt",
+    "en": "GPU Core Clock"
+  },
+  "value.gpu_memory_clock": {
+    "de": "GPU Memory Takt",
+    "en": "GPU Memory Clock"
+  },
+  "title.memory": {
+    "de": "Arbeitsspeicher",
+    "en": "Memory"
+  },
+  "title.with_page_file": {
+    "de": "Inklusive Auslagerungsdatei",
+    "en": "Including page file"
+  },
+  "type.Temperature": {
+    "de": "Temperatur",
+    "en": "Temperature"
+  },
+  "type.Load": {
+    "de": "Auslastung",
+    "en": "Load"
+  },
+  "type.Clock": {
+    "de": "Takt",
+    "en": "Clock"
+  },
+  "type.Frequency": {
+    "de": "Frequenz",
+    "en": "Frequency"
+  },
+  "type.Power": {
+    "de": "Leistung",
+    "en": "Power"
+  },
+  "type.Voltage": {
+    "de": "Spannung",
+    "en": "Voltage"
+  },
+  "type.Current": {
+    "de": "Stromstärke",
+    "en": "Current"
+  },
+  "type.Energy": {
+    "de": "Energie",
+    "en": "Energy"
+  },
+  "type.Fan": {
+    "de": "Lüfter",
+    "en": "Fan"
+  },
+  "type.Control": {
+    "de": "Lüftersteuerung",
+    "en": "Fan control"
+  },
+  "type.Flow": {
+    "de": "Durchfluss",
+    "en": "Flow"
+  },
+  "type.Data": {
+    "de": "Daten",
+    "en": "Data"
+  },
+  "type.SmallData": {
+    "de": "Speicher",
+    "en": "Memory"
+  },
+  "type.Throughput": {
+    "de": "Durchsatz",
+    "en": "Throughput"
+  },
+  "type.Level": {
+    "de": "Zustand",
+    "en": "Level"
+  },
+  "type.Factor": {
+    "de": "Faktor",
+    "en": "Factor"
+  },
+  "type.TimeSpan": {
+    "de": "Zeit",
+    "en": "Time"
+  },
+  "type.Timing": {
+    "de": "Timing",
+    "en": "Timing"
+  },
+  "type.Noise": {
+    "de": "Lautstärke",
+    "en": "Noise"
+  },
+  "type.Conductivity": {
+    "de": "Leitfähigkeit",
+    "en": "Conductivity"
+  },
+  "type.Humidity": {
+    "de": "Luftfeuchtigkeit",
+    "en": "Humidity"
+  },
+  "explain.temp.tctl_tdie": {
+    "de": "Die Steuertemperatur des Prozessors, nach der Mainboard und Lüfter regeln – der wichtigste CPU-Wert.",
+    "en": "The processor's control temperature that the motherboard and fans regulate by – the most important CPU value."
+  },
+  "explain.temp.tctl": {
+    "de": "Steuertemperatur für die Lüfterregelung; bei einigen Ryzen-Modellen absichtlich um einen festen Wert höher als die echte Temperatur.",
+    "en": "Control temperature for fan regulation; on some Ryzen models deliberately higher than the real temperature by a fixed offset."
+  },
+  "explain.temp.tdie": {
+    "de": "Die tatsächliche Temperatur des Prozessor-Chips, ohne den Lüfter-Aufschlag von Tctl.",
+    "en": "The actual temperature of the processor die, without the fan offset of Tctl."
+  },
+  "explain.temp.ccd": {
+    "de": "Temperatur von Kern-Chip Nr. {0} (Core Complex Die) – hier sitzen die eigentlichen CPU-Kerne.",
+    "en": "Temperature of core die no. {0} (Core Complex Die) – this is where the actual CPU cores are."
+  },
+  "explain.temp.ccds_max": {
+    "de": "Der höchste Wert aller Kern-Chips (CCDs).",
+    "en": "The highest value of all core dies (CCDs)."
+  },
+  "explain.temp.ccds_average": {
+    "de": "Der Durchschnitt aller Kern-Chips (CCDs).",
+    "en": "The average of all core dies (CCDs)."
+  },
+  "explain.temp.soc": {
+    "de": "Temperatur des I/O-Teils der CPU mit Speicher-Controller und PCIe-Anbindung.",
+    "en": "Temperature of the CPU's I/O part with the memory controller and PCIe connection."
+  },
+  "explain.temp.cpu_package": {
+    "de": "Gesamttemperatur des Prozessors, meist so hoch wie der heißeste Kern – der wichtigste Wert bei Intel.",
+    "en": "Overall processor temperature, usually as high as the hottest core – the most important value on Intel."
+  },
+  "explain.temp.core_max": {
+    "de": "Die Temperatur des aktuell heißesten CPU-Kerns.",
+    "en": "The temperature of the currently hottest CPU core."
+  },
+  "explain.temp.core_average": {
+    "de": "Der Durchschnitt über alle CPU-Kerne.",
+    "en": "The average across all CPU cores."
+  },
+  "explain.temp.cpu_core": {
+    "de": "Temperatur von CPU-Kern Nr. {0}.",
+    "en": "Temperature of CPU core no. {0}."
+  },
+  "explain.temp.distance_tjmax": {
+    "de": "Abstand bis zu der Temperatur, ab der sich die CPU drosselt – hier ist ein höherer Wert besser.",
+    "en": "Distance to the temperature at which the CPU throttles – a higher value is better here."
+  },
+  "explain.temp.gpu_core": {
+    "de": "Die durchschnittliche Temperatur des Grafikchips – der klassische GPU-Wert.",
+    "en": "The average temperature of the graphics chip – the classic GPU value."
+  },
+  "explain.temp.gpu_hot_spot": {
+    "de": "Die heißeste Stelle auf dem Grafikchip; liegt normalerweise 10–20 °C über GPU Core, deutlich mehr kann auf schlechten Kühlerkontakt hindeuten.",
+    "en": "The hottest spot on the graphics chip; normally 10–20 °C above GPU Core, much more can indicate poor cooler contact."
+  },
+  "explain.temp.gpu_memory_junction": {
+    "de": "Die heißeste Stelle im Grafikspeicher (VRAM); unter Last sind hier Werte bis knapp 100 °C noch normal.",
+    "en": "The hottest spot in the graphics memory (VRAM); under load, values up to just under 100 °C are still normal."
+  },
+  "explain.temp.gpu_memory": {
+    "de": "Temperatur des Grafikspeichers (VRAM).",
+    "en": "Temperature of the graphics memory (VRAM)."
+  },
+  "explain.temp.gpu_vr": {
+    "de": "Temperatur eines Spannungswandlers, der Grafikchip oder Speicher mit Strom versorgt.",
+    "en": "Temperature of a voltage regulator that powers the graphics chip or memory."
+  },
+  "explain.temp.gpu_liquid": {
+    "de": "Temperatur der Kühlflüssigkeit bei wassergekühlten Grafikkarten.",
+    "en": "Coolant temperature on water-cooled graphics cards."
+  },
+  "explain.temp.motherboard_cpu": {
+    "de": "CPU-Temperatur, gemessen vom Sensor auf dem Mainboard – meist weniger genau als Tctl/Tdie.",
+    "en": "CPU temperature measured by the sensor on the motherboard – usually less accurate than Tctl/Tdie."
+  },
+  "explain.temp.system": {
+    "de": "Temperatur auf dem Mainboard, ungefähr die Lufttemperatur im Gehäuse.",
+    "en": "Temperature on the motherboard, roughly the air temperature inside the case."
+  },
+  "explain.temp.chipset": {
+    "de": "Temperatur des Chipsatzes auf dem Mainboard.",
+    "en": "Temperature of the chipset on the motherboard."
+  },
+  "explain.temp.vrm": {
+    "de": "Temperatur der Spannungswandler, die die CPU mit Strom versorgen.",
+    "en": "Temperature of the voltage regulators that power the CPU."
+  },
+  "explain.temp.unnamed": {
+    "de": "Unbenannter Temperaturfühler Nr. {0}; was er misst, hängt vom Gerät ab (bei SSDs meist Controller bzw. Speicherchips).",
+    "en": "Unnamed temperature sensor no. {0}; what it measures depends on the device (on SSDs usually the controller or memory chips)."
+  },
+  "explain.temp.drive": {
+    "de": "Temperatur des Laufwerks (Controller oder Speicherchips).",
+    "en": "Temperature of the drive (controller or memory chips)."
+  },
+  "explain.temp.composite": {
+    "de": "Zusammengefasste Temperatur der SSD, nach der sie sich ggf. drosselt.",
+    "en": "Combined temperature of the SSD, by which it throttles if necessary."
+  },
+  "explain.temp.warning": {
+    "de": "Grenzwert der SSD: Ab dieser Temperatur warnt sie und beginnt sich zu drosseln – kein Messwert.",
+    "en": "SSD limit: from this temperature on it warns and starts to throttle – not a measured value."
+  },
+  "explain.temp.critical": {
+    "de": "Grenzwert der SSD: Ab dieser Temperatur drosselt sie sich stark, um Schäden zu vermeiden – kein Messwert.",
+    "en": "SSD limit: from this temperature on it throttles heavily to prevent damage – not a measured value."
+  },
+  "explain.load.cpu_total": {
+    "de": "Gesamtauslastung aller CPU-Kerne.",
+    "en": "Total load across all CPU cores."
+  },
+  "explain.load.cpu_core_max": {
+    "de": "Auslastung des gerade am stärksten belasteten Kerns.",
+    "en": "Load of the currently most heavily loaded core."
+  },
+  "explain.load.cpu_core": {
+    "de": "Auslastung von CPU-Kern Nr. {0}.",
+    "en": "Load of CPU core no. {0}."
+  },
+  "explain.load.gpu_core": {
+    "de": "Wie stark die Recheneinheiten der Grafikkarte gerade arbeiten.",
+    "en": "How hard the graphics card's compute units are working right now."
+  },
+  "explain.load.gpu_memory_controller": {
+    "de": "Auslastung der Anbindung zwischen Grafikchip und Grafikspeicher.",
+    "en": "Load of the connection between graphics chip and graphics memory."
+  },
+  "explain.load.gpu_video_engine": {
+    "de": "Auslastung der Videoeinheit (Abspielen und Aufnehmen von Videos).",
+    "en": "Load of the video unit (playing and recording videos)."
+  },
+  "explain.load.gpu_bus": {
+    "de": "Auslastung der PCIe-Verbindung zwischen Grafikkarte und Mainboard.",
+    "en": "Load of the PCIe connection between graphics card and motherboard."
+  },
+  "explain.load.gpu_memory": {
+    "de": "Anteil des belegten Grafikspeichers (VRAM).",
+    "en": "Share of the graphics memory (VRAM) in use."
+  },
+  "explain.load.d3d": {
+    "de": "Auslastung laut Windows für diesen Teil der Grafikkarte (z. B. 3D, Kopieren, Video).",
+    "en": "Load according to Windows for this part of the graphics card (e.g. 3D, copy, video)."
+  },
+  "explain.load.memory": {
+    "de": "Anteil des belegten Arbeitsspeichers.",
+    "en": "Share of the memory (RAM) in use."
+  },
+  "explain.load.virtual_memory": {
+    "de": "Anteil des belegten Arbeitsspeichers inklusive Auslagerungsdatei.",
+    "en": "Share of the memory in use, including the page file."
+  },
+  "explain.load.used_space": {
+    "de": "Wie voll das Laufwerk ist.",
+    "en": "How full the drive is."
+  },
+  "explain.load.activity": {
+    "de": "Wie viel Prozent der Zeit das Laufwerk gerade beschäftigt ist.",
+    "en": "Percentage of time the drive is busy right now."
+  },
+  "explain.load.network": {
+    "de": "Auslastung der Netzwerkverbindung im Verhältnis zu ihrer Maximalgeschwindigkeit.",
+    "en": "Load of the network connection relative to its maximum speed."
+  },
+  "explain.clock.cpu_core": {
+    "de": "Aktueller Takt von CPU-Kern Nr. {0}.",
+    "en": "Current clock of CPU core no. {0}."
+  },
+  "explain.clock.bus": {
+    "de": "Grundtakt, aus dem sich per Multiplikator der CPU-Takt ergibt (meist rund 100 MHz).",
+    "en": "Base clock from which the CPU clock results via the multiplier (usually around 100 MHz)."
+  },
+  "explain.clock.cores_average": {
+    "de": "Durchschnittlicher Takt aller CPU-Kerne.",
+    "en": "Average clock of all CPU cores."
+  },
+  "explain.clock.gpu_core": {
+    "de": "Aktueller Takt des Grafikchips.",
+    "en": "Current clock of the graphics chip."
+  },
+  "explain.clock.gpu_memory": {
+    "de": "Aktueller Takt des Grafikspeichers.",
+    "en": "Current clock of the graphics memory."
+  },
+  "explain.clock.gpu_shader": {
+    "de": "Takt der Shader-Einheiten der Grafikkarte.",
+    "en": "Clock of the graphics card's shader units."
+  },
+  "explain.power.package": {
+    "de": "Gesamter Stromverbrauch des Prozessors.",
+    "en": "Total power draw of the processor."
+  },
+  "explain.power.core_smu": {
+    "de": "Stromverbrauch von Kern Nr. {0}, gemeldet vom Prozessor selbst.",
+    "en": "Power draw of core no. {0}, reported by the processor itself."
+  },
+  "explain.power.cores": {
+    "de": "Stromverbrauch aller Kerne zusammen.",
+    "en": "Power draw of all cores combined."
+  },
+  "explain.power.soc": {
+    "de": "Stromverbrauch des I/O-Teils der CPU.",
+    "en": "Power draw of the CPU's I/O part."
+  },
+  "explain.power.cpu_memory": {
+    "de": "Stromverbrauch des Speicher-Controllers in der CPU.",
+    "en": "Power draw of the memory controller in the CPU."
+  },
+  "explain.power.platform": {
+    "de": "Stromverbrauch des ganzen Geräts laut Prozessor (CPU, Chipsatz, Speicher …) – nicht bei jedem Gerät verlässlich.",
+    "en": "Power draw of the whole device according to the processor (CPU, chipset, memory …) – not reliable on every device."
+  },
+  "explain.power.gpu": {
+    "de": "Gesamter Stromverbrauch der Grafikkarte.",
+    "en": "Total power draw of the graphics card."
+  },
+  "explain.power.discharging": {
+    "de": "Leistung, die gerade aus dem Akku entnommen wird.",
+    "en": "Power currently being drawn from the battery."
+  },
+  "explain.power.charging": {
+    "de": "Leistung, mit der der Akku gerade geladen wird.",
+    "en": "Power with which the battery is currently being charged."
+  },
+  "explain.voltage.core_svi": {
+    "de": "Kernspannung der CPU, gemeldet vom Spannungsregler.",
+    "en": "CPU core voltage, reported by the voltage regulator."
+  },
+  "explain.voltage.soc_svi": {
+    "de": "Spannung des I/O-Teils der CPU.",
+    "en": "Voltage of the CPU's I/O part."
+  },
+  "explain.voltage.vcore": {
+    "de": "Kernspannung der CPU, gemessen vom Mainboard.",
+    "en": "CPU core voltage, measured by the motherboard."
+  },
+  "explain.voltage.cpu_core": {
+    "de": "Kernspannung der CPU.",
+    "en": "CPU core voltage."
+  },
+  "explain.voltage.cpu_core_nr": {
+    "de": "Spannung von CPU-Kern Nr. {0}.",
+    "en": "Voltage of CPU core no. {0}."
+  },
+  "explain.voltage.psu_rail": {
+    "de": "Spannung der {0}-Volt-Leitung vom Netzteil; sollte nahe am Sollwert liegen (etwa ±5 %).",
+    "en": "Voltage of the {0} volt rail from the power supply; should be close to the nominal value (about ±5 %)."
+  },
+  "explain.voltage.cmos": {
+    "de": "Spannung der Knopfzelle auf dem Mainboard; liegt sie unter etwa 2,8 V, sollte sie bald getauscht werden.",
+    "en": "Voltage of the coin cell on the motherboard; if it is below about 2.8 V, it should be replaced soon."
+  },
+  "explain.voltage.gpu_core": {
+    "de": "Spannung des Grafikchips.",
+    "en": "Voltage of the graphics chip."
+  },
+  "explain.voltage.battery": {
+    "de": "Aktuelle Spannung des Akkus.",
+    "en": "Current voltage of the battery."
+  },
+  "explain.battery.discharge_current": {
+    "de": "Strom, der gerade aus dem Akku fließt.",
+    "en": "Current flowing out of the battery right now."
+  },
+  "explain.battery.charge_current": {
+    "de": "Strom, mit dem der Akku gerade geladen wird.",
+    "en": "Current with which the battery is currently being charged."
+  },
+  "explain.battery.remaining": {
+    "de": "Energie, die gerade noch im Akku steckt.",
+    "en": "Energy currently left in the battery."
+  },
+  "explain.battery.full_charge": {
+    "de": "Energie, die der Akku heute voll geladen speichert – sinkt mit dem Alter.",
+    "en": "Energy the battery stores today when fully charged – decreases with age."
+  },
+  "explain.battery.design": {
+    "de": "Energie, die der Akku laut Hersteller im Neuzustand speichert.",
+    "en": "Energy the battery stores when new, according to the manufacturer."
+  },
+  "explain.battery.remaining_time": {
+    "de": "Geschätzte Restlaufzeit bei der aktuellen Leistungsaufnahme.",
+    "en": "Estimated remaining runtime at the current power draw."
+  },
+  "explain.fan.gpu": {
+    "de": "Drehzahl des Grafikkarten-Lüfters; 0 RPM im Leerlauf ist normal, viele Karten stoppen ihre Lüfter dann.",
+    "en": "Speed of the graphics card fan; 0 RPM at idle is normal, many cards stop their fans then."
+  },
+  "explain.fan.motherboard": {
+    "de": "Drehzahl des Lüfteranschlusses Nr. {0} auf dem Mainboard.",
+    "en": "Speed of fan header no. {0} on the motherboard."
+  },
+  "explain.fan.pump": {
+    "de": "Drehzahl der Pumpe einer Wasserkühlung.",
+    "en": "Speed of a water cooling pump."
+  },
+  "explain.fan.gpu_control": {
+    "de": "Wie stark der Grafikkarten-Lüfter angesteuert wird (Prozent der Maximaldrehzahl).",
+    "en": "How strongly the graphics card fan is driven (percent of maximum speed)."
+  },
+  "explain.fan.motherboard_control": {
+    "de": "Wie stark der Lüfteranschluss auf dem Mainboard angesteuert wird.",
+    "en": "How strongly the fan header on the motherboard is driven."
+  },
+  "explain.data.memory_used": {
+    "de": "Belegter Arbeitsspeicher.",
+    "en": "Memory (RAM) in use."
+  },
+  "explain.data.memory_available": {
+    "de": "Noch freier Arbeitsspeicher.",
+    "en": "Free memory (RAM)."
+  },
+  "explain.data.virtual_used": {
+    "de": "Belegter Arbeitsspeicher inklusive Auslagerungsdatei auf der SSD.",
+    "en": "Memory in use, including the page file on the SSD."
+  },
+  "explain.data.virtual_available": {
+    "de": "Noch freier Speicher inklusive Auslagerungsdatei.",
+    "en": "Free memory, including the page file."
+  },
+  "explain.data.read": {
+    "de": "Insgesamt von diesem Laufwerk gelesene Datenmenge über seine ganze Lebensdauer.",
+    "en": "Total amount of data read from this drive over its entire lifetime."
+  },
+  "explain.data.written": {
+    "de": "Insgesamt auf dieses Laufwerk geschriebene Datenmenge über seine ganze Lebensdauer.",
+    "en": "Total amount of data written to this drive over its entire lifetime."
+  },
+  "explain.data.uploaded": {
+    "de": "Hochgeladene Datenmenge seit dem Verbinden des Adapters.",
+    "en": "Amount of data uploaded since the adapter connected."
+  },
+  "explain.data.downloaded": {
+    "de": "Heruntergeladene Datenmenge seit dem Verbinden des Adapters.",
+    "en": "Amount of data downloaded since the adapter connected."
+  },
+  "explain.data.gpu_used": {
+    "de": "Belegter Grafikspeicher (VRAM).",
+    "en": "Graphics memory (VRAM) in use."
+  },
+  "explain.data.gpu_free": {
+    "de": "Noch freier Grafikspeicher (VRAM).",
+    "en": "Free graphics memory (VRAM)."
+  },
+  "explain.data.gpu_total": {
+    "de": "Gesamtgröße des Grafikspeichers (VRAM).",
+    "en": "Total size of the graphics memory (VRAM)."
+  },
+  "explain.data.d3d_dedicated": {
+    "de": "Grafikspeicher, den Windows-Programme gerade belegen.",
+    "en": "Graphics memory currently used by Windows programs."
+  },
+  "explain.data.d3d_shared_used": {
+    "de": "Arbeitsspeicher, den die Grafikkarte zusätzlich mitbenutzt – steigt, wenn der Grafikspeicher knapp wird. Bei Onboard-Grafik ohne eigenen Grafikspeicher ist das ihr ganzer Speicher.",
+    "en": "Memory (RAM) the graphics card uses in addition – rises when graphics memory runs low. For integrated graphics without its own graphics memory, this is all of its memory."
+  },
+  "explain.data.d3d_shared_free": {
+    "de": "Arbeitsspeicher, den die Grafik noch zusätzlich belegen dürfte.",
+    "en": "Memory (RAM) the graphics could still use in addition."
+  },
+  "explain.data.d3d_shared_total": {
+    "de": "Wie viel Arbeitsspeicher Windows der Grafik höchstens überlässt (meist die Hälfte).",
+    "en": "The most memory (RAM) Windows leaves to the graphics (usually half)."
+  },
+  "explain.throughput.read": {
+    "de": "Aktuelle Lesegeschwindigkeit des Laufwerks.",
+    "en": "Current read speed of the drive."
+  },
+  "explain.throughput.write": {
+    "de": "Aktuelle Schreibgeschwindigkeit des Laufwerks.",
+    "en": "Current write speed of the drive."
+  },
+  "explain.throughput.upload": {
+    "de": "Aktuelle Upload-Geschwindigkeit.",
+    "en": "Current upload speed."
+  },
+  "explain.throughput.download": {
+    "de": "Aktuelle Download-Geschwindigkeit.",
+    "en": "Current download speed."
+  },
+  "explain.throughput.pcie_rx": {
+    "de": "Daten, die die Grafikkarte gerade über PCIe empfängt.",
+    "en": "Data the graphics card is currently receiving via PCIe."
+  },
+  "explain.throughput.pcie_tx": {
+    "de": "Daten, die die Grafikkarte gerade über PCIe sendet.",
+    "en": "Data the graphics card is currently sending via PCIe."
+  },
+  "explain.level.spare": {
+    "de": "Reserve-Speicherzellen der SSD für defekte Zellen; sinkt im Laufe der Zeit.",
+    "en": "Spare memory cells of the SSD for defective cells; decreases over time."
+  },
+  "explain.level.spare_threshold": {
+    "de": "Grenzwert: Fällt die Reserve (Available Spare) darunter, meldet die SSD einen kritischen Zustand – kein Messwert.",
+    "en": "Limit: if the spare (Available Spare) drops below it, the SSD reports a critical state – not a measured value."
+  },
+  "explain.level.life": {
+    "de": "Geschätzte verbleibende Lebensdauer der SSD.",
+    "en": "Estimated remaining lifetime of the SSD."
+  },
+  "explain.level.used": {
+    "de": "Verbrauchter Anteil der vom Hersteller angegebenen Lebensdauer der SSD.",
+    "en": "Used share of the SSD's lifetime specified by the manufacturer."
+  },
+  "explain.level.charge_level": {
+    "de": "Ladestand des Akkus.",
+    "en": "Charge level of the battery."
+  },
+  "explain.level.wear": {
+    "de": "Wie stark der Akku gegenüber neu an Kapazität verloren hat.",
+    "en": "How much capacity the battery has lost compared to new."
+  },
+  "explain.counter.power_on_count": {
+    "de": "Wie oft das Laufwerk insgesamt eingeschaltet wurde.",
+    "en": "How often the drive has been switched on in total."
+  },
+  "explain.counter.power_on_hours": {
+    "de": "Betriebsstunden des Laufwerks über seine ganze Lebensdauer.",
+    "en": "Operating hours of the drive over its entire lifetime."
+  },
+  "explain.type.Temperature": {
+    "de": "Ein Temperaturfühler dieser Komponente.",
+    "en": "A temperature sensor of this component."
+  },
+  "explain.type.Load": {
+    "de": "Auslastung in Prozent.",
+    "en": "Load in percent."
+  },
+  "explain.type.Clock": {
+    "de": "Taktfrequenz in Megahertz (Millionen Takte pro Sekunde).",
+    "en": "Clock frequency in megahertz (million cycles per second)."
+  },
+  "explain.type.Power": {
+    "de": "Aktuelle Leistungsaufnahme in Watt.",
+    "en": "Current power draw in watts."
+  },
+  "explain.type.Voltage": {
+    "de": "Gemessene Spannung in Volt.",
+    "en": "Measured voltage in volts."
+  },
+  "explain.type.Current": {
+    "de": "Gemessene Stromstärke in Ampere.",
+    "en": "Measured current in amperes."
+  },
+  "explain.type.Energy": {
+    "de": "Eine Energiemenge in Wattstunden.",
+    "en": "An amount of energy in watt-hours."
+  },
+  "explain.type.TimeSpan": {
+    "de": "Eine Zeitdauer in Stunden und Minuten.",
+    "en": "A duration in hours and minutes."
+  },
+  "explain.type.Fan": {
+    "de": "Lüfterdrehzahl in Umdrehungen pro Minute.",
+    "en": "Fan speed in revolutions per minute."
+  },
+  "explain.type.Control": {
+    "de": "Ansteuerung eines Lüfters oder einer Pumpe in Prozent.",
+    "en": "Control of a fan or pump in percent."
+  },
+  "explain.type.Data": {
+    "de": "Eine Datenmenge.",
+    "en": "An amount of data."
+  },
+  "explain.type.SmallData": {
+    "de": "Eine Speichermenge.",
+    "en": "An amount of memory."
+  },
+  "explain.type.Throughput": {
+    "de": "Aktuelle Übertragungsgeschwindigkeit.",
+    "en": "Current transfer speed."
+  },
+  "explain.type.Level": {
+    "de": "Füllstand bzw. Zustand in Prozent.",
+    "en": "Fill level or condition in percent."
+  },
+  "explain.default": {
+    "de": "Messwert laut LibreHardwareMonitor.",
+    "en": "Measured value from LibreHardwareMonitor."
+  },
+  "hw.overview": {
+    "de": "Übersicht",
+    "en": "Overview"
+  },
+  "hw.overview.help": {
+    "de": "Nur die Modellnamen aller Komponenten, nach Bereichen sortiert.",
+    "en": "Only the model names of all components, sorted by category."
+  },
+  "hw.details": {
+    "de": "Details",
+    "en": "Details"
+  },
+  "hw.details.help": {
+    "de": "Alle Hardwaredaten: Hersteller, Modell, IDs, Seriennummern, Treiber.",
+    "en": "All hardware data: manufacturer, model, IDs, serial numbers, drivers."
+  },
+  "hw.copy_all": {
+    "de": "Alles kopieren",
+    "en": "Copy all"
+  },
+  "hw.copy_all.overview": {
+    "de": "Kopiert alle Modellnamen als Text.",
+    "en": "Copies all model names as text."
+  },
+  "hw.copy_all.details": {
+    "de": "Kopiert alle Hardwaredaten als Text (mit Computername und Datum).",
+    "en": "Copies all hardware data as text (with computer name and date)."
+  },
+  "hw.copy": {
+    "de": "Kopieren",
+    "en": "Copy"
+  },
+  "hw.copy.overview": {
+    "de": "Kopiert die Modellnamen zu „{category}“ als Text.",
+    "en": "Copies the model names for \"{category}\" as text."
+  },
+  "hw.copy.details": {
+    "de": "Kopiert alle Daten zu „{category}“ als Text.",
+    "en": "Copies all data for \"{category}\" as text."
+  },
+  "hw.copied.overview": {
+    "de": "Modellnamen zu „{category}“ kopiert",
+    "en": "Copied model names for \"{category}\""
+  },
+  "hw.copied.details": {
+    "de": "Alle Daten zu „{category}“ kopiert",
+    "en": "Copied all data for \"{category}\""
+  },
+  "hw.all_models_copied": {
+    "de": "Alle Modellnamen kopiert",
+    "en": "Copied all model names"
+  },
+  "hw.all_data_copied": {
+    "de": "Alle Hardwaredaten kopiert",
+    "en": "Copied all hardware data"
+  },
+  "hw.not_read_yet": {
+    "de": "Die Hardwaredaten werden noch gelesen – gleich noch einmal versuchen.",
+    "en": "The hardware data is still being read – try again in a moment."
+  },
+  "hw.reading": {
+    "de": "Lese Hardwaredaten …",
+    "en": "Reading hardware data …"
+  },
+  "hw.no_data": {
+    "de": "Keine Hardwaredaten gefunden (Details in data\\logs\\hardware_monitor.log).",
+    "en": "No hardware data found (details in data\\logs\\hardware_monitor.log)."
+  },
+  "hw.text.header": {
+    "de": "Hardwaredaten von {pc} – Stand {date}",
+    "en": "Hardware data of {pc} – as of {date}"
+  },
+  "hw.category.processor": {
+    "de": "Prozessor",
+    "en": "Processor"
+  },
+  "hw.category.graphics_card": {
+    "de": "Grafikkarte",
+    "en": "Graphics card"
+  },
+  "hw.category.motherboard": {
+    "de": "Mainboard",
+    "en": "Motherboard"
+  },
+  "hw.category.memory": {
+    "de": "Arbeitsspeicher",
+    "en": "Memory"
+  },
+  "hw.category.drives": {
+    "de": "Laufwerke",
+    "en": "Drives"
+  },
+  "hw.category.network": {
+    "de": "Netzwerk",
+    "en": "Network"
+  },
+  "hw.category.audio": {
+    "de": "Audio",
+    "en": "Audio"
+  },
+  "hw.category.usb_devices": {
+    "de": "USB-Geräte",
+    "en": "USB devices"
+  },
+  "hw.field.manufacturer": {
+    "de": "Hersteller",
+    "en": "Manufacturer"
+  },
+  "hw.field.model": {
+    "de": "Modell",
+    "en": "Model"
+  },
+  "hw.field.version": {
+    "de": "Version",
+    "en": "Version"
+  },
+  "hw.field.kind": {
+    "de": "Art",
+    "en": "Type"
+  },
+  "hw.field.type": {
+    "de": "Typ",
+    "en": "Type"
+  },
+  "hw.field.size": {
+    "de": "Größe",
+    "en": "Size"
+  },
+  "hw.field.cores_threads": {
+    "de": "Kerne / Threads",
+    "en": "Cores / threads"
+  },
+  "hw.field.base_clock": {
+    "de": "Grundtakt",
+    "en": "Base clock"
+  },
+  "hw.field.l3_cache": {
+    "de": "L3-Cache",
+    "en": "L3 cache"
+  },
+  "hw.field.socket": {
+    "de": "Sockel",
+    "en": "Socket"
+  },
+  "hw.field.processor_id": {
+    "de": "Prozessor-ID",
+    "en": "Processor ID"
+  },
+  "hw.field.vendor_id": {
+    "de": "Hersteller-ID",
+    "en": "Vendor ID"
+  },
+  "hw.field.product_id": {
+    "de": "Produkt-ID",
+    "en": "Product ID"
+  },
+  "hw.field.board_vendor": {
+    "de": "Platinen-Hersteller",
+    "en": "Board manufacturer"
+  },
+  "hw.field.subsystem_id": {
+    "de": "Subsystem-ID",
+    "en": "Subsystem ID"
+  },
+  "hw.field.revision": {
+    "de": "Revision",
+    "en": "Revision"
+  },
+  "hw.field.hardware_id": {
+    "de": "Hardware-ID",
+    "en": "Hardware ID"
+  },
+  "hw.field.driver_version": {
+    "de": "Treiberversion",
+    "en": "Driver version"
+  },
+  "hw.field.driver_date": {
+    "de": "Treiberdatum",
+    "en": "Driver date"
+  },
+  "hw.field.serial_number": {
+    "de": "Seriennummer",
+    "en": "Serial number"
+  },
+  "hw.field.bios_vendor": {
+    "de": "BIOS-Hersteller",
+    "en": "BIOS vendor"
+  },
+  "hw.field.bios_version": {
+    "de": "BIOS-Version",
+    "en": "BIOS version"
+  },
+  "hw.field.bios_date": {
+    "de": "BIOS-Datum",
+    "en": "BIOS date"
+  },
+  "hw.field.part_number": {
+    "de": "Teilenummer",
+    "en": "Part number"
+  },
+  "hw.field.form_factor": {
+    "de": "Bauform",
+    "en": "Form factor"
+  },
+  "hw.field.speed": {
+    "de": "Takt",
+    "en": "Speed"
+  },
+  "hw.field.rated_speed": {
+    "de": "Takt laut Riegel",
+    "en": "Rated speed"
+  },
+  "hw.field.slot": {
+    "de": "Steckplatz",
+    "en": "Slot"
+  },
+  "hw.field.channels": {
+    "de": "Kanäle",
+    "en": "Channels"
+  },
+  "hw.field.interface": {
+    "de": "Anschluss",
+    "en": "Interface"
+  },
+  "hw.field.firmware": {
+    "de": "Firmware",
+    "en": "Firmware"
+  },
+  "hw.field.disk_number": {
+    "de": "Datenträger-Nr.",
+    "en": "Disk no."
+  },
+  "hw.field.mac_address": {
+    "de": "MAC-Adresse",
+    "en": "MAC address"
+  },
+  "hw.explain.vendor_id": {
+    "de": "Kennung des Chip-Herstellers (Vendor ID), z. B. 10DE = Nvidia. Weltweit eindeutig vergeben.",
+    "en": "ID of the chip manufacturer (vendor ID), e.g. 10DE = Nvidia. Assigned uniquely worldwide."
+  },
+  "hw.explain.product_id": {
+    "de": "Kennung des Chips beim Hersteller (Device ID bzw. bei USB Product ID).",
+    "en": "ID of the chip at its manufacturer (device ID, or product ID for USB)."
+  },
+  "hw.explain.board_vendor": {
+    "de": "Wer die Karte gebaut hat (Subsystem Vendor ID) – bei Grafikkarten z. B. Asus oder MSI, auch wenn der Chip von Nvidia ist.",
+    "en": "Who built the card (subsystem vendor ID) – for graphics cards e.g. Asus or MSI, even if the chip is from Nvidia."
+  },
+  "hw.explain.subsystem_id": {
+    "de": "Kennung des genauen Kartenmodells beim Platinen-Hersteller.",
+    "en": "ID of the exact card model at the board manufacturer."
+  },
+  "hw.explain.revision": {
+    "de": "Überarbeitungsstand des Chips.",
+    "en": "Revision of the chip."
+  },
+  "hw.explain.hardware_id": {
+    "de": "Vollständige Kennung, unter der Windows das Gerät führt – gut für die Treibersuche.",
+    "en": "Full ID under which Windows lists the device – useful for finding drivers."
+  },
+  "hw.explain.processor_id": {
+    "de": "CPUID-Kennung: Merkmale, Familie, Modell und Stepping des Prozessors (keine Seriennummer).",
+    "en": "CPUID: features, family, model and stepping of the processor (not a serial number)."
+  },
+  "hw.explain.mac_address": {
+    "de": "Die feste Hardware-Adresse des Netzwerkanschlusses.",
+    "en": "The fixed hardware address of the network adapter."
+  },
+  "hw.explain.serial_number": {
+    "de": "Seriennummer laut Gerät; fehlt, wenn der Hersteller keine hinterlegt hat.",
+    "en": "Serial number reported by the device; missing if the manufacturer didn't store one."
+  },
+  "hw.explain.part_number": {
+    "de": "Bestellnummer des Herstellers – damit findet man genau diesen Riegel wieder.",
+    "en": "The manufacturer's part number – use it to find exactly this module again."
+  },
+  "hw.explain.speed": {
+    "de": "Eingestellter Speichertakt in Megatransfers pro Sekunde.",
+    "en": "Configured memory speed in megatransfers per second."
+  },
+  "hw.explain.rated_speed": {
+    "de": "Höchster Takt, den der Riegel ohne XMP/EXPO meldet.",
+    "en": "Highest speed the module reports without XMP/EXPO."
+  },
+  "hw.explain.form_factor": {
+    "de": "Riegel lassen sich tauschen und aufrüsten; verlöteter Speicher sitzt fest auf dem Mainboard.",
+    "en": "Modules can be swapped and upgraded; soldered memory is fixed to the motherboard."
+  },
+  "hw.explain.channels": {
+    "de": "Verlöteten Speicher meldet Windows je Speicherkanal statt je Riegel – so viele Einträge sind es.",
+    "en": "Windows reports soldered memory per memory channel instead of per module – this is how many entries there are."
+  },
+  "hw.value.integrated": {
+    "de": "Integriert (im Prozessor)",
+    "en": "Integrated (in the processor)"
+  },
+  "hw.value.external": {
+    "de": "Extern (eGPU)",
+    "en": "External (eGPU)"
+  },
+  "hw.value.dedicated": {
+    "de": "Dediziert",
+    "en": "Dedicated"
+  },
+  "hw.value.dimm": {
+    "de": "Riegel (DIMM)",
+    "en": "Module (DIMM)"
+  },
+  "hw.value.sodimm": {
+    "de": "Riegel (SO-DIMM)",
+    "en": "Module (SO-DIMM)"
+  },
+  "hw.value.soldered": {
+    "de": "verlötet",
+    "en": "soldered"
+  },
+  "hw.value.from_part_number": {
+    "de": "{vendor} (laut Teilenummer)",
+    "en": "{vendor} (from part number)"
+  },
+  "hw.value.lan": {
+    "de": "LAN (Kabel)",
+    "en": "LAN (cable)"
+  },
+  "hw.value.mobile": {
+    "de": "Mobilfunk",
+    "en": "Mobile broadband"
+  },
+  "hw.value.hdd": {
+    "de": "Festplatte (HDD)",
+    "en": "Hard disk (HDD)"
+  },
+  "hw.value.sd_card": {
+    "de": "SD-Karte",
+    "en": "SD card"
+  },
+  "hw.name.processor": {
+    "de": "Prozessor",
+    "en": "Processor"
+  },
+  "hw.name.graphics_card": {
+    "de": "Grafikkarte",
+    "en": "Graphics card"
+  },
+  "hw.name.motherboard": {
+    "de": "Mainboard",
+    "en": "Motherboard"
+  },
+  "hw.name.memory": {
+    "de": "Arbeitsspeicher",
+    "en": "Memory"
+  },
+  "hw.name.memory_module": {
+    "de": "Speicherriegel",
+    "en": "Memory module"
+  },
+  "hw.name.drive": {
+    "de": "Laufwerk",
+    "en": "Drive"
+  },
+  "hw.name.network_adapter": {
+    "de": "Netzwerkadapter",
+    "en": "Network adapter"
+  },
+  "hw.name.audio_device": {
+    "de": "Audiogerät",
+    "en": "Audio device"
+  },
+  "hw.name.usb_device": {
+    "de": "USB-Gerät",
+    "en": "USB device"
+  },
+  "window.coming": {
+    "de": "Dieser Tab kommt in der Rust-Version als Nächstes.",
+    "en": "This tab comes next in the Rust version."
+  },
+  "window.no_monitor": {
+    "de": "Der Monitor liefert keine Werte. Läuft der Hardware Monitor, und ist auf seiner Seite „Rust-Version verwenden“ an? Das Detailfenster der Rust-Version braucht ihn.",
+    "en": "The monitor sends no values. Is the Hardware Monitor running, with “Use the Rust version” switched on on its page? The Rust version's detail window needs it."
   }
 }

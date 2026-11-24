@@ -17,12 +17,14 @@ name = "Hardware Monitor"
 description = { de = "CPU- und GPU-Temperatur in der Taskleiste; ein Klick auf ein Symbol zeigt fast alle Hardware-Werte – dazu Stromverbrauch, Lüfterkurven und Laufwerkszustand.", en = "CPU and GPU temperature in the taskbar; a click on an icon shows almost all hardware values – plus power consumption, fan curves and drive health." }
 
 [dependencies]
+eframe = { version = "0.37.0", default-features = false, features = ["glow", "default_fonts", "system_fonts", "clipboard", "links", "accesskit"] }
 # The shared library of the Windows Toolbox, compiled in (from its main branch).
 kit = { package = "toolbox-kit", git = "https://github.com/Windows-Toolbox/Toolbox" }
+regex = { version = "1.13.2", default-features = false, features = ["std", "unicode-perl"] }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.154"
-# nvml.dll and local time (the same version the kit uses).
-windows-sys = { version = "0.61.2", features = ["Win32_Foundation", "Win32_System_LibraryLoader", "Win32_System_Time"] }
+# nvml.dll, local time, where the window goes (the same version the kit uses).
+windows-sys = { version = "0.61.2", features = ["Win32_Foundation", "Win32_Graphics_Gdi", "Win32_System_LibraryLoader", "Win32_System_Time", "Win32_UI_HiDpi", "Win32_UI_WindowsAndMessaging"] }
 
 [build-dependencies]
 kit = { package = "toolbox-kit", git = "https://github.com/Windows-Toolbox/Toolbox", default-features = false, features = ["build"] }

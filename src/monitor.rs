@@ -18,11 +18,14 @@ use serde_json::{Map, Value, json};
 use crate::bridge::{self, Bridge};
 use crate::energy::{self, EnergyLog, PlugLog};
 use crate::fans::{self, Controller, Fans};
+use crate::link::{self, ToWindow};
 use crate::nvml::Nvml;
 use crate::plug::{self, Plug};
 use crate::sensors::{self, Reading};
 use crate::{Monitor, Phase, Report, Settings};
 
+/// Between two drive health readings while that tab is shown.
+const HEALTH_EVERY: Duration = Duration::from_secs(10);
 /// After the bridge could not be started or has gone: the next try.
 const RETRY: Duration = Duration::from_secs(10);
 /// While no plug was found: the next look.
@@ -57,7 +60,7 @@ pub struct PlugView {
 /// The plug while the monitor runs: found (or given), connected, read.
 struct PlugState {
     plug: Option<Plug>,
-    name: String,
+    pub name: String,
     next_look: Option<Instant>,
     /// The address it was asked for ("" = found by itself).
     wanted: String,
@@ -153,6 +156,10 @@ pub fn run(rt: &Runtime<Monitor>) {
     }
     kit::process::efficiency_mode(false);
     rt.with(|p, _| p.fan_info.clear());
+    // A detail window would show old values: it closes with the monitor.
+    if let Some(window) = rt.with(|p, _| p.window.take()) {
+        window.close();
+    }
 }
 
 /// One connection to the bridge: open, then read round after round. `Err` when the bridge failed.
@@ -168,7 +175,11 @@ fn session(rt: &Runtime<Monitor>, b: &Bridge) -> Result<(), String> {
     let mut controller = Controller::default();
     let (mut later, mut complete, mut battery) = (false, false, false);
     let mut fan_config = Map::new();
+    let mut geometry = String::new();
     let mut fan_file_seen = None;
+    let mut present: Option<Vec<String>> = None;
+    let mut drives: Option<Value> = None;
+    let mut drives_read: Option<Instant> = None;
     let mut efficiency = None;
     let result = loop {
         if !wanted(rt) {
@@ -182,7 +193,9 @@ fn session(rt: &Runtime<Monitor>, b: &Bridge) -> Result<(), String> {
         let seen = crate::modified(&file);
         if seen != fan_file_seen {
             fan_file_seen = seen;
-            fan_config = crate::read_json(&file).get("fan_control").and_then(Value::as_object).cloned().unwrap_or_default();
+            let map = crate::read_json(&file);
+            fan_config = map.get("fan_control").and_then(Value::as_object).cloned().unwrap_or_default();
+            geometry = map.get("window").and_then(Value::as_str).unwrap_or_default().to_string();
         }
         let on = s.efficiency_mode != "off";
         if efficiency != Some(on) {
@@ -199,7 +212,20 @@ fn session(rt: &Runtime<Monitor>, b: &Bridge) -> Result<(), String> {
         if battery {
             types.extend(sensors::types("battery"));
         }
-        let reading = Reading::parse(&b.ask(json!({"cmd": "read", "types": types}))?);
+        // What the window shows is read too; "all" reads everything.
+        let want = rt.with(|p, _| p.window_want.clone());
+        let for_window = matches!(want.view.as_str(), "list" | "fans");
+        let command = match (for_window, want.types()) {
+            (true, None) => json!({"cmd": "read"}),
+            (true, Some(more)) => {
+                types.extend(more);
+                types.sort();
+                types.dedup();
+                json!({"cmd": "read", "types": types})
+            }
+            _ => json!({"cmd": "read", "types": types}),
+        };
+        let reading = Reading::parse(&b.ask(command)?);
         if !later {
             // The taskbar has its values; now the rest – the bridge goes on answering meanwhile.
             b.ask(json!({"cmd": "open", "groups": sensors::LATER_GROUPS}))?;
@@ -208,6 +234,7 @@ fn session(rt: &Runtime<Monitor>, b: &Bridge) -> Result<(), String> {
             let all = Reading::parse(&b.ask(json!({"cmd": "read"}))?);
             controller.items = all.fans();
             battery = all.devices().iter().any(|d| d == "battery");
+            present = Some(all.devices());
             app::log(&format!("controllable fans: {}", controller.items.iter().map(|i| format!("{} ({})", i.name, i.id)).collect::<Vec<_>>().join(", ")));
             complete = true;
         }
@@ -239,7 +266,70 @@ fn session(rt: &Runtime<Monitor>, b: &Bridge) -> Result<(), String> {
         let summary = summary(&s, estimate, plug_view.watts, &energy, &plug_log);
         let fan_info = controller.items.iter().map(|i| (i.name.clone(), controller.state.get(&i.id).cloned().unwrap_or_default())).collect();
         rt.with(|p, _| p.fan_info = fan_info);
+        let plug_name = if s.plug_name.trim().is_empty() { plug.name.clone() } else { s.plug_name.trim().to_string() };
+        let plug_watts = plug_view.watts;
         publish(rt, running_report(&s, cpu, has_gpu.then_some(gpu), summary, plug_view));
+
+        // The window, if one is open: what it shows.
+        if let Some(window) = rt.with(|p, _| p.window.clone()) {
+            if want.view == "health" && drives_read.is_none_or(|t| t.elapsed() >= HEALTH_EVERY) {
+                drives = b.ask(json!({"cmd": "drives"})).ok();
+                drives_read = Some(Instant::now());
+            }
+            let look = rt.look();
+            let price = crate::parse_price(&s.energy_price).unwrap_or(0.0);
+            let settings = link::Settings {
+                language: look.language,
+                theme: look.theme,
+                zoom: look.zoom,
+                cpu_warn_temp: s.cpu_warn_temp,
+                cpu_hot_temp: s.cpu_hot_temp,
+                gpu_warn_temp: s.gpu_warn_temp,
+                gpu_hot_temp: s.gpu_hot_temp,
+                privacy_mode: s.privacy_mode,
+                window: geometry.clone(),
+                energy_logging: s.energy_logging,
+                energy_price: price,
+                energy_currency: s.energy_currency.trim().to_string(),
+                plug: s.plug,
+            };
+            let temps = s.icon_order.iter().filter(|k| *k == "cpu" || has_gpu).map(|k| (k.clone(), if k == "cpu" { cpu } else { gpu })).collect();
+            let fans = controller
+                .items
+                .iter()
+                .map(|i| {
+                    let state = controller.state.get(&i.id).cloned().unwrap_or_default();
+                    link::Fan {
+                        id: i.id.clone(),
+                        kind: i.kind.clone(),
+                        name: i.name.clone(),
+                        control_ids: i.control_ids.clone(),
+                        fan_ids: i.fan_ids.clone(),
+                        minimum: i.minimum,
+                        maximum: i.maximum,
+                        software: state.software,
+                        pct: state.pct,
+                        note: state.note,
+                        config: fan_config.get(&i.id).cloned(),
+                    }
+                })
+                .collect();
+            let power_view = want.view == "power";
+            let state = link::State {
+                settings,
+                temps,
+                hardware: for_window.then(|| reading.hardware.clone()),
+                answers: want.clone(),
+                loading: !complete,
+                present: present.clone(),
+                power: link::Power { estimate, cpu: reading.cpu_power(), gpu: gpu_power, battery: reading.battery_power(), plug: plug_watts, plug_name },
+                hours: power_view.then(|| energy.hours.clone()),
+                plug_hours: power_view.then(|| plug_log.hours.clone()),
+                fans,
+                drives: (want.view == "health").then(|| drives.clone()).flatten(),
+            };
+            let _ = window.send(&ToWindow::State(Box::new(state)));
+        }
 
         // A "Delete all saved data" from the page while running: both logs.
         if rt.with(|p, _| std::mem::take(&mut p.energy_delete_asked)) {
@@ -247,7 +337,8 @@ fn session(rt: &Runtime<Monitor>, b: &Bridge) -> Result<(), String> {
             app::log(if ok { "the power logs were deleted" } else { "the power logs could not be deleted" });
         }
 
-        let mut every = Duration::from_secs_f64(s.icon_interval.max(0.5));
+        let open = rt.with(|p, _| p.window.is_some() && p.window_want.anything());
+        let mut every = Duration::from_secs_f64(if open { s.popup_interval } else { s.icon_interval }.max(0.5));
         if controller.wanted(&fan_config) {
             every = every.min(fans::INTERVAL);
         }

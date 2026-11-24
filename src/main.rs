@@ -17,17 +17,21 @@
 #![windows_subsystem = "windows"]
 
 mod bridge;
+mod content;
 mod energy;
 mod fans;
+mod link;
 mod monitor;
 mod nvml;
 mod plug;
 mod sensors;
+mod window;
 
 use std::io::{BufRead, BufReader, Write};
 use std::net::{SocketAddr, TcpStream};
 use std::os::windows::process::CommandExt;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant, SystemTime};
 
@@ -439,6 +443,12 @@ struct Monitor {
     fan_info: Vec<(String, fans::State)>,
     /// "Delete all saved data" while the Rust monitor runs – it holds the logs and deletes them.
     energy_delete_asked: bool,
+    /// The detail window's connection, while one is open (`link.rs`).
+    window: Option<Arc<kit::ipc::Conn>>,
+    /// What it shows – and so what the monitor reads for it.
+    window_want: link::Want,
+    /// A window was just started – a second click does not start another.
+    window_started: Option<Instant>,
 }
 
 impl Monitor {
@@ -456,6 +466,27 @@ impl Monitor {
             bridge: BridgeView::default(),
             fan_info: vec![],
             energy_delete_asked: false,
+            window: None,
+            window_want: link::Want::default(),
+            window_started: None,
+        }
+    }
+
+    /// Brings the detail window forward – or starts it: the same exe in its window role (`link::ARGUMENT`).
+    fn open_window(&mut self, tab: Option<&str>) {
+        if let Some(c) = &self.window {
+            let _ = c.send(&link::ToWindow::Front { tab: tab.map(str::to_string) });
+            return;
+        }
+        if self.window_started.is_some_and(|t| t.elapsed() < Duration::from_secs(5)) {
+            return;
+        }
+        let Ok(exe) = std::env::current_exe() else { return };
+        let mut args = vec![link::ARGUMENT];
+        args.extend(tab);
+        match process::spawn(&exe, &args) {
+            Ok(_) => self.window_started = Some(Instant::now()),
+            Err(e) => app::log(&format!("the detail window could not be started: {e}")),
         }
     }
 
@@ -732,7 +763,12 @@ impl Program for Monitor {
             "open_taskbar_settings" => {
                 process::open("ms-settings:taskbar");
             }
-            "show_power" | "show_fans" if s.rust_version => return Some(t!("toast.no_window_yet")),
+            "show_power" | "show_fans" if s.rust_version => {
+                if !self.running {
+                    return Some(t!("toast.not_running"));
+                }
+                self.open_window(Some(if name == "show_power" { "tab.power" } else { "tab.fans" }));
+            }
             "delete_power" if s.rust_version && self.running => {
                 if !self.delete_asked.is_some_and(|t| t.elapsed() < CONFIRM) {
                     self.delete_asked = Some(Instant::now());
@@ -790,9 +826,14 @@ impl Program for Monitor {
         None
     }
 
-    /// A second start of HardwareMonitor.exe, or "show" from the Toolbox: the page.
+    /// A second start of HardwareMonitor.exe, or "show" from the Toolbox (a click on a temperature): the detail
+    /// window while the Rust version runs, else the page.
     fn show(&mut self) {
-        app::open_in_toolbox(Self::META.id);
+        if self.settings.rust_version && self.running {
+            self.open_window(None);
+        } else {
+            app::open_in_toolbox(Self::META.id);
+        }
     }
 
     fn shutdown(&mut self) {
@@ -840,6 +881,67 @@ fn do_orders(rt: &Runtime<Monitor>) {
             p.setup = setup;
         });
         rt.changed();
+    }
+}
+
+/// The detail window's pipe: one window at a time; what it says is done here, what it wants is read by the monitor.
+fn window_server(rt: Runtime<Monitor>) {
+    let server = match kit::ipc::Server::bind(link::PIPE) {
+        Ok(s) => s,
+        Err(e) => return app::log(&format!("the window's pipe could not be created: {e}")),
+    };
+    loop {
+        let Ok(conn) = server.accept() else {
+            std::thread::sleep(Duration::from_millis(500));
+            continue;
+        };
+        if let Some(old) = rt.with(|p, _| p.window.replace(conn.clone())) {
+            old.close();
+        }
+        rt.with(|p, _| p.window_started = None);
+        let rt = rt.clone();
+        std::thread::spawn(move || {
+            while let Some(line) = conn.read_line() {
+                let Ok(msg) = serde_json::from_str::<link::ToMonitor>(&line) else { continue };
+                window_said(&rt, msg);
+            }
+            rt.with(|p, _| {
+                if p.window.as_ref().is_some_and(|w| Arc::ptr_eq(w, &conn)) {
+                    p.window = None;
+                    p.window_want = link::Want::default();
+                }
+            });
+            rt.nudge();
+        });
+    }
+}
+
+fn window_said(rt: &Runtime<Monitor>, msg: link::ToMonitor) {
+    match msg {
+        link::ToMonitor::Want(want) => {
+            rt.with(|p, _| p.window_want = want);
+            rt.nudge();
+        }
+        link::ToMonitor::Privacy { on } => rt.update(|s| s.privacy_mode = on),
+        link::ToMonitor::Fan { id, config } => {
+            let file = monitor_file();
+            let mut map = read_json(&file);
+            let mut fans = map.get("fan_control").and_then(Value::as_object).cloned().unwrap_or_default();
+            fans.insert(id, config);
+            map.insert("fan_control".into(), Value::Object(fans));
+            if let Err(e) = write_json(&file, &map) {
+                app::log(&format!("{} could not be written: {e}", file.display()));
+            }
+            rt.nudge();
+        }
+        link::ToMonitor::Geometry { value } => {
+            let file = monitor_file();
+            let mut map = read_json(&file);
+            map.insert("window".into(), json!(value));
+            if let Err(e) = write_json(&file, &map) {
+                app::log(&format!("{} could not be written: {e}", file.display()));
+            }
+        }
     }
 }
 
@@ -901,6 +1003,10 @@ fn work(rt: Runtime<Monitor>) {
     rt.with(|p, _| p.setup = setup);
     rt.changed();
     check_bridge(&rt);
+    {
+        let rt = rt.clone();
+        std::thread::spawn(move || window_server(rt));
+    }
     let mut language = i18n::language();
     loop {
         // While the program only serves its page, the worker looks after the page's orders only.
@@ -991,6 +1097,13 @@ fn python(rt: &Runtime<Monitor>, language: &mut String) {
 
 fn main() {
     kit::texts!();
+    // The window role: a second process of this exe, for the detail window (`window.rs`).
+    let args: Vec<String> = std::env::args().collect();
+    if args.get(1).is_some_and(|a| a == link::ARGUMENT) {
+        app::init(&Monitor::META);
+        window::run(args.get(2).cloned());
+        return;
+    }
     app::init(&Monitor::META);
     let mut monitor = Monitor::new();
     monitor.seen = modified(&monitor_file());
