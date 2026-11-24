@@ -180,6 +180,44 @@ pub enum RowKind {
     /// A value; `second`: a second one in the same row (the fan's control beside its speed); `device` decides
     /// which limits colour a temperature (the GPU's, else the CPU's).
     Value { sensor: Box<Sensor>, second: Option<Box<Sensor>>, device: String },
+    /// Hardware data: a category ("Graphics card") – a heading with "Copy"; `index` in the data.
+    Category { index: usize },
+    /// Hardware data: a device's name; `leaf`: nothing below it (the overview).
+    Name { leaf: bool },
+    /// Hardware data: a field of a device and its value (already hidden in privacy mode).
+    Info { field: String, value: String },
+}
+
+impl RowKind {
+    /// A heading that folds what is below it.
+    pub fn folds(&self) -> bool {
+        matches!(self, RowKind::Device { .. } | RowKind::Section | RowKind::Category { .. } | RowKind::Name { leaf: false })
+    }
+}
+
+/// The rows of the tab "Hardware data": category → device → fields, or in the overview category → model names
+/// (identical devices combined). `private`: privacy mode – sensitive values hidden.
+pub fn hardware_rows(data: &crate::hardware_data::Data, overview: bool, private: bool) -> Vec<Row> {
+    use crate::hardware_data as hd;
+    let mut out = vec![];
+    for (c, (category, devices)) in data.iter().enumerate() {
+        out.push(Row { key: format!("hw{c}"), depth: 0, text: hd::category_name(category), kind: RowKind::Category { index: c } });
+        if overview {
+            for (d, name) in hd::model_names(devices).into_iter().enumerate() {
+                out.push(Row { key: format!("hw{c}|o{d}"), depth: 1, text: name, kind: RowKind::Name { leaf: true } });
+            }
+            continue;
+        }
+        for (d, device) in devices.iter().enumerate() {
+            let head = format!("hw{c}|d{d}");
+            out.push(Row { key: head.clone(), depth: 1, text: device.name.clone(), kind: RowKind::Name { leaf: false } });
+            for (i, (field, value)) in device.fields.iter().enumerate() {
+                let value = hd::shown(field, value, private).to_string();
+                out.push(Row { key: format!("{head}|{i}"), depth: 2, text: hd::field_name(field), kind: RowKind::Info { field: field.clone(), value } });
+            }
+        }
+    }
+    out
 }
 
 /// The sensor types in the order the "all" tab lists them (and `type.<type>` in the texts).

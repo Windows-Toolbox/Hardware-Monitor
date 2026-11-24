@@ -18,9 +18,11 @@
 
 mod bridge;
 mod content;
+mod drive_view;
 mod energy;
 mod fan_view;
 mod fans;
+mod hardware_data;
 mod link;
 mod monitor;
 mod nvml;

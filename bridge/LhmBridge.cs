@@ -14,6 +14,11 @@
 //   {"cmd":"drives"}                               drive health through DiskInfoToolkit (the library LHM uses)
 // Every answer has "type": "ok", "values", "drives" or "error" (with "message").
 //
+// `LhmBridge.exe --hardware-data` is something else: no pipe, no LHM, no admin rights – the fixed data of the
+// hardware from WMI (manufacturer, model, IDs, serial numbers, drivers) and DXCore (integrated GPU or a card) as one
+// JSON object on stdout, then it ends. The detail window runs it for its tab "Hardware data"; what the values mean
+// is worked out there (hardware_data.rs).
+//
 // When the connection closes – for whatever reason – every fan it set goes back to automatic and LHM is closed.
 // Nobody connecting within a minute after the start ends it too.
 //
@@ -22,8 +27,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
+using System.Management;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Text;
@@ -50,6 +57,7 @@ static class Bridge
             string file = Path.Combine(LhmDir, new AssemblyName(e.Name).Name + ".dll");
             return File.Exists(file) ? Assembly.LoadFrom(file) : null;
         };
+        if (Array.IndexOf(args, "--hardware-data") >= 0) return HardwareData.Print();
         // A test may give the pipe another name (`--pipe name`); the task never does.
         string name = Pipe;
         int at = Array.IndexOf(args, "--pipe");
@@ -326,5 +334,129 @@ static class Drives
             }
         }
         return new Dictionary<string, object> { { "type", "drives" }, { "drives", drives }, { "errors", errors } };
+    }
+}
+
+// The fixed data of the hardware for the window's tab "Hardware data" (`--hardware-data`): the WMI rows as they are
+// (every value as text, or null) and what DXCore says about each GPU. No LHM type is named here.
+static class HardwareData
+{
+    static readonly JavaScriptSerializer Json = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
+
+    // name, WMI namespace, query – the names are what hardware_data.rs asks for.
+    static readonly string[][] Queries = {
+        new[] { "processor", @"root\cimv2", "SELECT Name, Manufacturer, ProcessorId, NumberOfCores, NumberOfLogicalProcessors, MaxClockSpeed, SocketDesignation, L2CacheSize, L3CacheSize FROM Win32_Processor" },
+        new[] { "video", @"root\cimv2", "SELECT Name, PNPDeviceID, DriverVersion, DriverDate FROM Win32_VideoController" },
+        new[] { "board", @"root\cimv2", "SELECT Manufacturer, Product, Version, SerialNumber FROM Win32_BaseBoard" },
+        new[] { "bios", @"root\cimv2", "SELECT Manufacturer, SMBIOSBIOSVersion, ReleaseDate FROM Win32_BIOS" },
+        new[] { "memory", @"root\cimv2", "SELECT Manufacturer, PartNumber, SerialNumber, BankLabel, DeviceLocator, Capacity, Speed, ConfiguredClockSpeed, SMBIOSMemoryType, FormFactor FROM Win32_PhysicalMemory" },
+        new[] { "disks", @"root\Microsoft\Windows\Storage", "SELECT DeviceId, FriendlyName, SerialNumber, FirmwareVersion, Size, BusType, MediaType FROM MSFT_PhysicalDisk" },
+        new[] { "net_kinds", @"root\StandardCimv2", "SELECT PnPDeviceID, NdisPhysicalMedium FROM MSFT_NetAdapter" },
+        new[] { "network", @"root\cimv2", "SELECT Name, PNPDeviceID, MACAddress FROM Win32_NetworkAdapter WHERE PhysicalAdapter = TRUE" },
+        new[] { "sound", @"root\cimv2", "SELECT Name, PNPDeviceID FROM Win32_SoundDevice" },
+        new[] { "usb", @"root\cimv2", "SELECT Name, Manufacturer, PNPDeviceID FROM Win32_PnPEntity WHERE PNPDeviceID LIKE 'USB%'" },
+    };
+
+    public static int Print()
+    {
+        var stdout = new StreamWriter(Console.OpenStandardOutput(), new UTF8Encoding(false));
+        stdout.Write(Json.Serialize(Read()));
+        stdout.Flush();
+        return 0;
+    }
+
+    static Dictionary<string, object> Read()
+    {
+        var wmi = new Dictionary<string, object>();
+        var errors = new List<string>();
+        foreach (var q in Queries)
+        {
+            var rows = new List<object>();
+            try
+            {
+                using (var searcher = new ManagementObjectSearcher(q[1], q[2]))
+                    foreach (ManagementBaseObject obj in searcher.Get())
+                    {
+                        var row = new Dictionary<string, object>();
+                        foreach (PropertyData p in obj.Properties)
+                            row[p.Name] = p.Value == null ? null : Convert.ToString(p.Value, System.Globalization.CultureInfo.InvariantCulture);
+                        rows.Add(row);
+                    }
+            }
+            catch (Exception ex)
+            {
+                errors.Add(q[0] + ": " + ex.Message);
+            }
+            wmi[q[0]] = rows;
+        }
+        var gpus = new List<object>();
+        try { Gpus(gpus); }
+        catch (Exception ex) { errors.Add("dxcore: " + ex.Message); }
+        return new Dictionary<string, object> { { "wmi", wmi }, { "gpus", gpus }, { "computer", Environment.MachineName }, { "errors", errors } };
+    }
+
+    // ---------- DXCore: is a GPU part of the processor, an external one (eGPU) or a card? The name doesn't tell
+    // ("Intel Arc Graphics" is integrated, "Intel Arc A770" a card). Missing before Windows 10 2004.
+    [DllImport("dxcore.dll")]
+    static extern int DXCoreCreateAdapterFactory(ref Guid riid, out IntPtr factory);
+
+    delegate int CreateAdapterList(IntPtr self, uint count, ref Guid attribute, ref Guid riid, out IntPtr list);
+    delegate int GetAdapter(IntPtr self, uint index, ref Guid riid, out IntPtr adapter);
+    delegate uint GetAdapterCount(IntPtr self);
+    delegate int GetProperty(IntPtr self, uint property, UIntPtr size, IntPtr buffer);
+    delegate uint Release(IntPtr self);
+
+    // Method no. `n` of a COM object, counted as in dxcore_interface.h (0–2: QueryInterface, AddRef, Release).
+    static T Method<T>(IntPtr obj, int n) where T : class
+    {
+        IntPtr vtable = Marshal.ReadIntPtr(obj);
+        return Marshal.GetDelegateForFunctionPointer(Marshal.ReadIntPtr(vtable, n * IntPtr.Size), typeof(T)) as T;
+    }
+
+    static void Gpus(List<object> gpus)
+    {
+        var factoryId = new Guid("78ee5945-c36e-4b13-a669-005dd11c0f06");
+        var compute = new Guid("248e2800-a793-4724-abaa-23a6de1be090");
+        var listId = new Guid("526c7776-40e9-459b-b711-f32ad76dfc28");
+        var adapterId = new Guid("f0db4c7f-fe5a-42a2-bd62-f2a6cf6fc83e");
+        IntPtr factory, list;
+        if (DXCoreCreateAdapterFactory(ref factoryId, out factory) != 0) return;
+        try
+        {
+            if (Method<CreateAdapterList>(factory, 3)(factory, 1, ref compute, ref listId, out list) != 0) return;
+            try
+            {
+                uint count = Method<GetAdapterCount>(list, 4)(list);
+                IntPtr buffer = Marshal.AllocHGlobal(16);
+                try
+                {
+                    for (uint i = 0; i < count; i++)
+                    {
+                        IntPtr adapter;
+                        if (Method<GetAdapter>(list, 3)(list, i, ref adapterId, out adapter) != 0) continue;
+                        try
+                        {
+                            var property = Method<GetProperty>(adapter, 6);
+                            // 3 = HardwareID: vendor, device, subsystem, revision
+                            if (property(adapter, 3, (UIntPtr)16, buffer) != 0) continue;
+                            uint vendor = (uint)Marshal.ReadInt32(buffer), device = (uint)Marshal.ReadInt32(buffer, 4), subsys = (uint)Marshal.ReadInt32(buffer, 8);
+                            Marshal.WriteByte(buffer, 0, 0);
+                            property(adapter, 12, (UIntPtr)1, buffer); // IsIntegrated
+                            bool integrated = Marshal.ReadByte(buffer) != 0;
+                            Marshal.WriteByte(buffer, 0, 0);
+                            property(adapter, 13, (UIntPtr)1, buffer); // IsDetachable
+                            bool detachable = Marshal.ReadByte(buffer) != 0;
+                            gpus.Add(new Dictionary<string, object> {
+                                { "vendor", vendor.ToString("X4") }, { "device", device.ToString("X4") }, { "subsys", subsys.ToString("X8") },
+                                { "integrated", integrated }, { "detachable", detachable } });
+                        }
+                        finally { Method<Release>(adapter, 2)(adapter); }
+                    }
+                }
+                finally { Marshal.FreeHGlobal(buffer); }
+            }
+            finally { Method<Release>(list, 2)(list); }
+        }
+        finally { Method<Release>(factory, 2)(factory); }
     }
 }

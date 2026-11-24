@@ -68,7 +68,8 @@ $stale = -not (Test-Path $bridge) -or ($inputs | Where-Object { (Get-Item $_).La
 if ($stale) {
     & (Join-Path $framework 'csc.exe') /nologo /target:winexe /optimize+ "/out:$bridge" '/win32icon:assets\icon.ico' `
         "/r:$(Join-Path $lhmDir 'LibreHardwareMonitorLib.dll')" "/r:$(Join-Path $framework 'System.Web.Extensions.dll')" `
-        "/r:$(Join-Path $framework 'Microsoft.CSharp.dll')" "/r:$(Join-Path $framework 'System.Core.dll')" 'bridge\LhmBridge.cs'
+        "/r:$(Join-Path $framework 'Microsoft.CSharp.dll')" "/r:$(Join-Path $framework 'System.Core.dll')" `
+        "/r:$(Join-Path $framework 'System.Management.dll')" 'bridge\LhmBridge.cs'
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
 $installedBridge = 'dist\LhmBridge.exe'

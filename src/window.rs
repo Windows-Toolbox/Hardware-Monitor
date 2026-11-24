@@ -8,6 +8,7 @@
 //! click), the footer explains the value under the mouse. Size and position are kept.
 
 use std::collections::BTreeSet;
+use std::sync::mpsc;
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::{Duration, Instant};
 
@@ -17,6 +18,7 @@ use kit::t;
 use kit::ui;
 
 use crate::content::{self, Content, Row, RowKind};
+use crate::hardware_data::{self, HardwareData};
 use crate::energy::num;
 use crate::link::{self, State, ToMonitor, ToWindow, Want};
 use crate::sensors::Sensor;
@@ -213,6 +215,14 @@ struct App {
     privacy_clicked: Option<(bool, Instant)>,
     power: crate::power_view::PowerView,
     fans: crate::fan_view::FanView,
+    drives: crate::drive_view::DriveView,
+    /// Hardware data: read once per window, when the tab is first shown.
+    hw: Option<HardwareData>,
+    hw_reading: Option<mpsc::Receiver<Result<HardwareData, String>>>,
+    /// The sub-tab: Overview (model names only) or Details.
+    hw_overview: bool,
+    /// A category's "Copy" was clicked.
+    hw_copy: Option<usize>,
 }
 
 /// The row under the mouse this frame, and what a click there would copy.
@@ -243,6 +253,11 @@ impl App {
             privacy_clicked: None,
             power: Default::default(),
             fans: Default::default(),
+            drives: Default::default(),
+            hw: None,
+            hw_reading: None,
+            hw_overview: true,
+            hw_copy: None,
         }
     }
 
@@ -431,11 +446,15 @@ impl eframe::App for App {
         egui::CentralPanel::default().show(ui, |ui| match tab.as_ref().and_then(|t| t.view.clone()).as_deref() {
             None | Some("all") => {
                 if let Some(tab) = &tab {
-                    hover = self.list(ui, &ctx, tab, &state, answered);
+                    let rows = if answered { content::rows(tab, state.hardware.as_deref().unwrap_or_default()) } else { vec![] };
+                    let empty = if answered { t!("window.no_sensors") } else { t!("window.loading_sensors") };
+                    hover = self.list(ui, &ctx, rows, empty, &state.settings);
                 }
             }
             Some("power") => self.power.show(ui, &state, &mut out),
             Some("fans") => self.fans.show(ui, &state, answered, &mut out),
+            Some("health") => self.drives.show(ui, &state, &mut out),
+            Some("hardware_data") => hover = self.hardware_tab(ui, &ctx, &state, &mut out),
             Some(_) => {
                 ui.add_space(20.0);
                 ui.label(RichText::new(t!("window.coming")).color(ui::muted(ui)));
@@ -553,13 +572,82 @@ fn shown(ui: &egui::Ui, settings: &link::Settings, sensor: &Sensor, second: &Opt
 }
 
 impl App {
-    /// A list tab. `ready`: the reading fits the tab. The row under the mouse comes back for the footer.
-    fn list(&mut self, ui: &mut egui::Ui, ctx: &egui::Context, tab: &content::Tab, state: &State, ready: bool) -> Option<Hover> {
-        let rows = if ready { content::rows(tab, state.hardware.as_deref().unwrap_or_default()) } else { vec![] };
+    /// The tab "Hardware data": Overview / Details and "Copy all" on top, the list below.
+    fn hardware_tab(&mut self, ui: &mut egui::Ui, ctx: &egui::Context, state: &State, out: &mut ViewOut) -> Option<Hover> {
+        if self.hw.is_none() && self.hw_reading.is_none() {
+            let (tx, rx) = mpsc::channel();
+            let ctx = ctx.clone();
+            std::thread::spawn(move || {
+                let _ = tx.send(hardware_data::read());
+                ctx.request_repaint();
+            });
+            self.hw_reading = Some(rx);
+        }
+        if let Some(rx) = &self.hw_reading
+            && let Ok(result) = rx.try_recv()
+        {
+            self.hw = Some(result.unwrap_or_else(|e| {
+                kit::app::log(&format!("the hardware data could not be read: {e}"));
+                HardwareData { data: vec![], computer: String::new() }
+            }));
+            self.hw_reading = None;
+        }
+        let private = state.settings.privacy_mode;
+        let mut not_yet = false;
+        ui.add_space(6.0);
+        ui.horizontal(|ui| {
+            ui.spacing_mut().item_spacing.x = 4.0;
+            for (overview, id) in [(true, "hw.overview"), (false, "hw.details")] {
+                let b = ui.add(egui::Button::new(t!(id)).selected(self.hw_overview == overview));
+                if b.hovered() {
+                    out.footer = Some(t!(&format!("{id}.help")));
+                }
+                if b.clicked() && self.hw_overview != overview {
+                    self.hw_overview = overview;
+                    self.selected.clear();
+                    self.anchor = None;
+                }
+            }
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                let b = ui.button(format!("⧉  {}", t!("hw.copy_all")));
+                if b.hovered() {
+                    out.footer = Some(t!(if self.hw_overview { "hw.copy_all.overview" } else { "hw.copy_all.details" }));
+                }
+                if b.clicked() {
+                    match self.hw.as_ref().filter(|hw| !hw.data.is_empty()) {
+                        None => not_yet = true,
+                        Some(hw) if self.hw_overview => out.copy = Some((hardware_data::model_names_as_text(&hw.data), t!("hw.all_models_copied"))),
+                        Some(hw) => out.copy = Some((hardware_data::all_as_text(hw, private), t!("hw.all_data_copied"))),
+                    }
+                }
+            });
+        });
+        if not_yet {
+            self.confirm(t!("hw.not_read_yet"), true);
+        }
+        ui.add_space(4.0);
+        let rows = self.hw.as_ref().map(|hw| content::hardware_rows(&hw.data, self.hw_overview, private)).unwrap_or_default();
+        let empty = if self.hw.is_some() { t!("hw.no_data") } else { t!("hw.reading") };
+        let hover = self.list(ui, ctx, rows, empty, &state.settings);
+        if let Some(i) = self.hw_copy.take()
+            && let Some((category, devices)) = self.hw.as_ref().and_then(|hw| hw.data.get(i))
+        {
+            let name = hardware_data::category_name(category);
+            out.copy = Some(if self.hw_overview {
+                (hardware_data::model_names_as_text(&[(category.clone(), devices.clone())]), t!("hw.copied.overview", category = name))
+            } else {
+                (hardware_data::as_text(category, devices, private), t!("hw.copied.details", category = name))
+            });
+        }
+        hover
+    }
+
+    /// A list of rows (a list tab, or the hardware data); `empty`: what stands there without rows. The row under the
+    /// mouse comes back for the footer.
+    fn list(&mut self, ui: &mut egui::Ui, ctx: &egui::Context, rows: Vec<Row>, empty: String, settings: &link::Settings) -> Option<Hover> {
         if rows.is_empty() {
             ui.add_space(12.0);
-            let text = if ready { t!("window.no_sensors") } else { t!("window.loading_sensors") };
-            ui.label(RichText::new(text).color(ui::muted(ui)));
+            ui.label(RichText::new(empty).color(ui::muted(ui)));
             return None;
         }
         // What is folded away is not shown.
@@ -571,7 +659,7 @@ impl App {
             }
             hidden_below = None;
             visible.push(row);
-            if !matches!(row.kind, RowKind::Value { .. }) && self.collapsed.contains(&row.key) {
+            if row.kind.folds() && self.collapsed.contains(&row.key) {
                 hidden_below = Some(row.depth);
             }
         }
@@ -626,8 +714,56 @@ impl App {
                             hover = Some(Hover { explain: t!("window.click_name", name = row.text) });
                         }
                     }
+                    RowKind::Category { index } => {
+                        let folded = self.collapsed.contains(&row.key);
+                        let arrow = egui::Rect::from_center_size(egui::pos2(rect.min.x + indent + 6.0, y), egui::vec2(14.0, ROW));
+                        painter.text(arrow.center(), Align2::CENTER_CENTER, if folded { "▸" } else { "▾" }, FontId::proportional(12.0), ui::muted(ui));
+                        painter.text(egui::pos2(arrow.max.x + 4.0, y), Align2::LEFT_CENTER, &row.text, FontId::proportional(14.5), ui::accent(ui));
+                        if (resp.clicked() && pointer.is_some_and(|p| arrow.expand2(egui::vec2(4.0, 0.0)).contains(p))) || resp.double_clicked() {
+                            toggled = Some(row.key.clone());
+                        }
+                        let button = egui::Rect::from_min_max(egui::pos2(rect.max.x - 84.0, rect.min.y + 1.0), egui::pos2(rect.max.x - 4.0, rect.max.y - 1.0));
+                        let b = ui.put(button, egui::Button::new(RichText::new(format!("⧉  {}", t!("hw.copy"))).size(12.0)));
+                        if b.hovered() {
+                            hover = Some(Hover { explain: t!(if self.hw_overview { "hw.copy.overview" } else { "hw.copy.details" }, category = row.text) });
+                        }
+                        if b.clicked() {
+                            self.hw_copy = Some(*index);
+                        }
+                    }
+                    RowKind::Name { leaf } => {
+                        let mut left = rect.min.x + indent;
+                        if !leaf {
+                            let folded = self.collapsed.contains(&row.key);
+                            let arrow = egui::Rect::from_center_size(egui::pos2(left + 6.0, y), egui::vec2(14.0, ROW));
+                            painter.text(arrow.center(), Align2::CENTER_CENTER, if folded { "▸" } else { "▾" }, FontId::proportional(12.0), ui::muted(ui));
+                            if (resp.clicked() && pointer.is_some_and(|p| arrow.expand2(egui::vec2(4.0, 0.0)).contains(p))) || resp.double_clicked() {
+                                toggled = Some(row.key.clone());
+                            }
+                            left = arrow.max.x;
+                        }
+                        let name = painter.text(egui::pos2(left + 4.0, y), Align2::LEFT_CENTER, &row.text, FontId::proportional(13.5), text_color);
+                        if pointer.is_some_and(|p| name.expand(3.0).contains(p)) {
+                            over_copyable = Some(row.text.clone());
+                        }
+                        if resp.hovered() {
+                            hover = Some(Hover { explain: t!("window.click_name", name = row.text) });
+                        }
+                    }
+                    RowKind::Info { field, value } => {
+                        painter.text(egui::pos2(rect.min.x + indent + 18.0, y), Align2::LEFT_CENTER, &row.text, FontId::proportional(13.0), ui::muted(ui));
+                        let hidden = value == hardware_data::HIDDEN;
+                        let value_left = rect.min.x + (rect.width() * 0.46).max(indent + 160.0);
+                        let value_rect = painter.text(egui::pos2(value_left, y), Align2::LEFT_CENTER, value, FontId::proportional(13.0), if hidden { ui::muted(ui) } else { text_color });
+                        if !hidden && pointer.is_some_and(|p| value_rect.expand(4.0).contains(p)) {
+                            over_copyable = Some(value.clone());
+                        }
+                        if resp.hovered() {
+                            hover = Some(Hover { explain: hardware_data::explanation(field).unwrap_or_else(|| format!("{}: {value}", row.text)) });
+                        }
+                    }
                     RowKind::Value { sensor, second, device } => {
-                        let (value, color) = shown(ui, &state.settings, sensor, second, device);
+                        let (value, color) = shown(ui, settings, sensor, second, device);
                         let bar_left = rect.max.x - bar_width;
                         let value_right = bar_left - 8.0;
                         painter.text(egui::pos2(rect.min.x + indent + 18.0, y), Align2::LEFT_CENTER, &row.text, FontId::proportional(13.0), text_color);
@@ -681,7 +817,7 @@ impl App {
                 }
                 let copy_one = self.copy_one(row);
                 resp.context_menu(|ui| {
-                    let label = if matches!(row.kind, RowKind::Value { .. }) { t!("menu.copy_value") } else { t!("menu.copy_name") };
+                    let label = if matches!(row.kind, RowKind::Value { .. } | RowKind::Info { .. }) { t!("menu.copy_value") } else { t!("menu.copy_name") };
                     if ui.add_enabled(copy_one.is_some(), egui::Button::new(label)).clicked() {
                         menu_action = Some(("one", copy_one.clone()));
                         ui.close();
@@ -773,8 +909,9 @@ impl App {
     /// What "Copy value" / "Copy name" copies for one row.
     fn copy_one(&self, row: &Row) -> Option<String> {
         match &row.kind {
-            RowKind::Device { .. } => Some(row.text.clone()),
+            RowKind::Device { .. } | RowKind::Category { .. } | RowKind::Name { .. } => Some(row.text.clone()),
             RowKind::Section => None,
+            RowKind::Info { value, .. } => Some(value.clone()),
             RowKind::Value { sensor, second, .. } => {
                 if second.is_some() && sensor.kind == "Fan" && sensor.value == 0.0 { Some(t!("value.stopped")) } else { Some(fmt_value(&sensor.kind, sensor.value)) }
             }
@@ -800,6 +937,7 @@ impl App {
                         }
                         format!("{}: {v}", r.text)
                     }
+                    RowKind::Info { value, .. } => format!("{}: {value}", r.text),
                     _ => r.text.clone(),
                 };
                 format!("{}{line}", "  ".repeat(r.depth - top))
