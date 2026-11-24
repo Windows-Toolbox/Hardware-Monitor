@@ -1,8 +1,9 @@
 # Hardware Monitor
 
-CPU and GPU temperature as numbers in the taskbar; a click on an icon opens a window with almost all hardware
-values in tabs – plus power consumption with costs, fan curves, drive health (like CrystalDiskInfo) and a privacy
-mode. A program of the [Windows Toolbox](https://github.com/Windows-Toolbox/Toolbox).
+CPU and GPU temperature as numbers in the taskbar; a click on one opens a window with almost all hardware values
+in tabs – plus power consumption with costs (estimated, or measured by a smart plug), fan curves, drive health (like
+CrystalDiskInfo), the fixed hardware data and a privacy mode. A program of the
+[Windows Toolbox](https://github.com/Windows-Toolbox/Toolbox).
 
 > **Downloaded from the releases?** The `.exe` is not signed (signing costs money). Windows SmartScreen may warn
 > once at the first start: *More info → Run anyway*.
@@ -11,97 +12,97 @@ mode. A program of the [Windows Toolbox](https://github.com/Windows-Toolbox/Tool
 
 These rules hold on every PC and in every session; they are here because `CLAUDE.md` and Claude's memory stay local.
 
-- The monitor itself is still **Python** (`python\`). The plan is a full port to Rust (Toolbox `DESIGN.md` 10,
-  M4: a small C# bridge for LibreHardwareMonitor, everything else Rust). Until then this repo only connects it to
-  the new Toolbox – new features go into the Python part as before.
-- New texts on the page: `assets\i18n.json`, German and English. The monitor's own texts (`python\i18n.json`) are
-  English only for now.
+- Everything is Rust, except the bridge `bridge\LhmBridge.cs` (C#, because LibreHardwareMonitor is a .NET library).
+  Keep the bridge small: it only hands over raw values – what they mean is worked out in Rust.
+- A change to `LhmBridge.cs` makes "Set up" necessary again (the installed copy differs) – until then the monitor
+  reads nothing. Say so before installing such a build.
+- New texts: `assets\i18n.json`, German and English.
+- The fan curve editor controls the real fans – never switch a fan to Curve or Fixed on the developer's PC without
+  asking.
 - Keep the checklist below up to date.
 
 ## Using it
 
-1. Add the folder in the Toolbox (**Add program…**).
-2. Press **Set up** on its page. A window opens and does what is missing: our own Python in `runtime\` (Python
-   3.14 is installed with winget if it is not on the PC), the packages, LibreHardwareMonitor in `lhm\`, the driver
-   PawnIO and the task "HardwareMonitor" in Task Scheduler. Windows asks for admin rights once.
+1. Add the folder in the Toolbox (**Add program…**), or get it under **Get programs**.
+2. Press **Set up** on its page. It installs the driver PawnIO (winget), downloads LibreHardwareMonitor (checked by
+   its SHA-256), puts it and the bridge into `C:\Program Files\WindowsToolbox\hardware_monitor\` and registers the
+   task `\WindowsToolbox\hardware_monitor`. Windows asks for admin rights once.
 3. **Start**. **Start with Windows** in the Toolbox starts it at sign-in.
 
-The settings are on the page; the refresh rates and the privacy mode can also be switched in the right-click menu of
-the icons. Which values the detail window shows is in `python\detail_window_content.py`.
+A click on a temperature in the taskbar (or "Open" in the Toolbox) opens the detail window. The settings are on the
+page; the privacy mode can also be switched in the tray menu and in the window. Which values the detail window
+shows is set in `detail_window.json` – its `help` at the top explains the format.
 
-What is yours lies in `dist\data\`: `hardware_monitor.json` (the monitor's settings, window position, fan curves),
-`hardware_monitor_energy.json` (the power log), `monitor.log`, and `settings.json` / `log.txt` of the page. The
-Toolbox's *Export…* takes all of it along except the logs (from Toolbox 2.1.1 on).
+What is yours lies in `dist\data\`: `settings.json` (settings, fan curves, the window's place),
+`hardware_monitor_energy.json` and `hardware_monitor_plug.json` (the power logs) and `log.txt`. The Toolbox's
+*Export…* takes all of it along except the log.
 
 ## Removing it
 
-Press **Remove setup** on its page before you delete the folder. A window opens, stops the sensors, deletes the task
-"HardwareMonitor" (only if it points to this folder – another copy's task stays) and asks whether the driver PawnIO
-should go too; other programs (FanControl, LibreHardwareMonitor) may use it, so it stays unless you say yes. Windows
-asks for admin rights once. `runtime\` and `lhm\` lie in the folder and go with it. The Toolbox's *Uninstall all*
-leaves the task and PawnIO on purpose – it has no admin rights.
+Press **Uninstall** in the section "Setup" before you delete the folder: it removes the task and the protected
+folder (Windows asks for admin rights once). The driver PawnIO stays – other programs (FanControl,
+LibreHardwareMonitor) may use it; it can be removed in Windows Settings under Apps. The Toolbox's *Uninstall all*
+removes the task and the folder too.
 
 ## How it fits together
 
 ```
- Toolbox ◄─pipe─► HardwareMonitor.exe ◄─TCP 127.0.0.1:47815─► runtime\HardwareMonitorSensors.exe python\hardware_monitor.py
- (normal)         (normal: page, Start/Stop,                  (admin, through the task: sensors via LibreHardwareMonitor,
-                   status, settings file)                       tray icons, detail window)
+ Toolbox ◄─pipe─► HardwareMonitor.exe ◄─pipe─► LhmBridge.exe  (admin, through the task: LibreHardwareMonitor)
+                  (the monitor: page,
+                   taskbar, fans, power)
+                        ▲
+                        │ pipe (link.rs)
+                        ▼
+                  HardwareMonitor.exe --window  (the detail window, a process of its own while it is open)
 ```
 
-- **Start**: `HardwareMonitor.exe` runs the task (`schtasks /run`), which starts the sensors with admin rights
-  without asking. The task has no trigger of its own.
-- **Status**: every 2 s "status" over TCP – temperatures for the Toolbox, the power line for the page.
-- **Stop**: "quit"; the sensors hand every fan back to Auto when they end. "Quit" in their own right-click menu
-  stops the program as well.
-- **Settings**: the page writes its values into `data\hardware_monitor.json` and sends "reload"; what the monitor
-  changes there itself comes back onto the page. The Toolbox's language goes the same way ("language").
-- **Gear** in the detail window: opens the page in the Toolbox (`\\.\pipe\windows-toolbox.toolbox`).
+- **The monitor** (`monitor.rs`) runs on the program's worker: it starts the bridge through its task, reads CPU and
+  GPU first, the rest in the background; the Nvidia temperature comes from `nvml.dll` directly. Efficiency mode while
+  idle. It controls the fans, logs the power and reads the smart plug.
+- **The detail window** (`window.rs`) says over its pipe what it shows; the monitor then reads that each round and
+  sends it. Closing the window gives all its memory back.
+- **The bridge** (`bridge\LhmBridge.cs`) is the only part with admin rights. When its connection ends, every fan it
+  set goes back to Auto. `LhmBridge.exe --hardware-data` (no admin rights) prints the WMI data for the tab
+  "Hardware data".
+- **Gear** in the detail window: opens the page in the Toolbox.
 
 ## Building
 
-`build.ps1` builds the release and installs it into `dist\` (needs Rust). In the repo the Python part stays in
-`python\` – the task points there, so a changed `.py` counts at the next start without a build. `release.ps1`
-puts exe, manifest, README and `python\` into the zip (not `runtime\`, `lhm\`, `data\`: "Set up" makes those).
+`build.ps1` builds the release, compiles the bridge with the `csc.exe` that is part of Windows (only when its source
+changed) and installs both into `dist\`. `release.ps1` puts exe, bridge, manifest, README and `detail_window.json`
+into a signed zip and publishes it as a GitHub release (the version from `Cargo.toml`).
+
+`cargo test` runs the unit tests; `cargo test real -- --ignored --nocapture` asks the real bridge and the plug
+(sets no fan).
 
 ## The files
 
 | Path | What |
 |---|---|
-| `src/main.rs` | the page, Start/Stop, the status, the settings file both ways, "Set up" |
-| `src/bridge.rs`, `bridge/LhmBridge.cs`, `lhm.json` | the Rust version's bridge to LibreHardwareMonitor (the one part with admin rights), its setup steps, the pinned LHM version |
-| `src/monitor.rs` | the Rust version's loop: reading, taskbar, power, plug, fans |
+| `src/main.rs` | the page, Start/Stop, the status, "Set up", the detail window's pipe |
+| `src/monitor.rs` | the monitor's loop: reading, taskbar, power, plug, fans, what the window wants |
+| `src/bridge.rs`, `bridge/LhmBridge.cs`, `lhm.json` | the bridge to LibreHardwareMonitor, its setup steps, the pinned LHM version |
 | `src/sensors.rs`, `src/nvml.rs` | what the bridge reads and what is chosen from it; the Nvidia values straight from the driver |
 | `src/fans.rs`, `src/energy.rs`, `src/plug.rs` | fan curves, the power estimate and logs, the smart plug (Modbus TCP, mDNS) |
-| `assets/` | `i18n.json` (the page's texts), `icon.ico` |
-| `python/hardware_monitor.py` | the monitor: sensors, tray icons, remote control (port 47815) |
-| `python/detail_window.py`, `detail_window_content.py` | the detail window and what it shows |
-| `python/energy.py`, `fans.py`, `*_view.py`, `hardware_data.py` | power, fan control, their tabs, hardware data |
-| `python/hardware_monitor_settings.py` | defaults and checks of the settings, port, texts |
-| `python/storage.py`, `i18n.py`, `languages.json` | where the data lies, texts in the chosen language |
-| `python/setup.ps1`, `make_exe.py`, `requirements.txt` | "Set up": runtime, packages, the sensors' exe, LibreHardwareMonitor, PawnIO, task |
-| `python/README.md` | the technical description of the Python part |
+| `src/window.rs`, `src/link.rs` | the detail window and what goes between it and the monitor |
+| `src/content.rs`, `detail_window.json` | which tab shows which values |
+| `src/power_view.rs`, `src/fan_view.rs`, `src/drive_view.rs`, `src/hardware_data.rs` | the tabs Power, Fans, Drive health, Hardware data |
+| `assets/` | `i18n.json` (all texts), `icon.ico` |
 
 ## Checklist
 
 ✓ checked, ◐ built, not checked by hand yet.
 
-- ✓ Tests: page keys, texts, defaults equal to the Python part's, the settings file both ways
-- ✓ Set up steps 1–4 (runtime, packages, sensors' exe, LibreHardwareMonitor) on the developer PC; `--list` reads the sensors
-- ✓ The page in a sandbox Toolbox
-- ✓ Hand test 2026-11-18: Set up with the admin prompt, Start / Stop from the Toolbox, status line, page changes
-  reach the running monitor and right-click menu changes reach the page, chart, fan control, gear in the detail
-  window
-- ◐ Remove setup (2026-11-22): built, script parsed in PowerShell 5 and 7; not run yet (it would remove the real
-  task) – first on the laptop
-- ✓ Rust port, step 1 (2026-11-24): the bridge `LhmBridge.exe` (`bridge\`, built by `build.ps1`) and "Set up" /
-  "Test" / "Uninstall" for it in the section "Sensors for the Rust version (preview)" – hand test passed: one admin
-  prompt, the bridge reads with admin rights, Clean up leaves it alone, Uninstall removes task and folder
-- ✓ Rust port, step 2 (2026-11-24): "Use the Rust version (preview)" – the monitor without a window: temperatures
-  (status line, numbers in the taskbar with a stripe, a click opens the page), privacy mode in the tray menu,
-  efficiency mode, the smart plug, switching back to Python – hand test passed
-- ◐ Rust port, step 2: fan curves applied by the Rust version – unit tests only (the curves can only be edited in
-  the Python window until step 3)
+- ✓ Tests: page keys, texts, settings of version 2, the bars of the power chart, fan curves, the plug's log, drive
+  health rules, hardware data from the bridge's rows, the window's content file
+- ✓ Set up / Test / Uninstall (2026-11-24): one admin prompt, the bridge reads with admin rights, Clean up leaves it
+  alone, Uninstall removes task and folder
+- ✓ The monitor (2026-11-24): status line, numbers in the taskbar with a stripe, privacy mode in the tray menu,
+  efficiency mode, the smart plug
+- ✓ The detail window (2026-11-24): list tabs (select, copy, fold), privacy mode, size and place kept; Power (views,
+  tiles, hover, Copy table), Fans (curve editor on real fans), Drive health, Hardware data (Overview / Details, Copy)
+- ◐ Version 3.0.0: fan curves and the window's place taken over from version 2's `hardware_monitor.json`
+- ◐ A fresh PC from the release zip alone
 
 ## Later
 

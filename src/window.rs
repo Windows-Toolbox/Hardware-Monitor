@@ -2,7 +2,7 @@
 //! monitor with `--window [tab]` on a click, it shows what the monitor sends over `link::PIPE` and ends when it is
 //! closed, giving all its memory back. What it shows comes from `detail_window.json` (`content.rs`).
 //!
-//! Like the Python window: the two temperatures large at the top, privacy mode, "Loading data …" / "● Live", the
+//! The two temperatures large at the top, privacy mode, "Loading data …" / "● Live", the
 //! gear (the page in the Toolbox); tabs that wrap; in a list tab the devices with their values – a click on a value
 //! or a device name copies it, rows can be selected (click, Ctrl/Shift+click, dragging) and copied (Ctrl+C, right
 //! click), the footer explains the value under the mouse. Size and position are kept.
@@ -455,10 +455,7 @@ impl eframe::App for App {
             Some("fans") => self.fans.show(ui, &state, answered, &mut out),
             Some("health") => self.drives.show(ui, &state, &mut out),
             Some("hardware_data") => hover = self.hardware_tab(ui, &ctx, &state, &mut out),
-            Some(_) => {
-                ui.add_space(20.0);
-                ui.label(RichText::new(t!("window.coming")).color(ui::muted(ui)));
-            }
+            Some(_) => {}
         });
         if let Some(msg) = out.send {
             self.send(&msg);

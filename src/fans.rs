@@ -1,6 +1,6 @@
 //! Fan control: curves (temperature → %) for the graphics card's fans and the motherboard's fan headers – like the
-//! fan curve in MSI Afterburner. Ported from `python\fans.py`, with the same rules and the same settings
-//! (`fan_control` in `data\hardware_monitor.json`), so curves made with the Python monitor carry over.
+//! fan curve in MSI Afterburner. Ported from the Python monitor of version 2, with the same rules and the same
+//! settings (`fan_control`, now in `data\settings.json`), so its curves carried over.
 //!
 //! One item per graphics card (all its fans follow one curve) and one per motherboard fan header. Per item: mode
 //! "auto" (not controlled – the default), "curve" or "fixed", the source temperature ("gpu", "cpu" or "max") and

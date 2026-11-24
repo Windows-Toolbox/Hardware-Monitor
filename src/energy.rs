@@ -1,5 +1,5 @@
-//! Power consumption: estimate, log, add up – ported from `python\energy.py`, in the same file format, so the log
-//! of the Python monitor goes on.
+//! Power consumption: estimate, log, add up – ported from the Python monitor of version 2, in the same file format,
+//! so its log went on.
 //!
 //! Most power supplies cannot report what they draw, so the PC's power at the wall socket is estimated:
 //!
@@ -249,7 +249,7 @@ pub fn fmt_date(day: &str) -> String {
     if kit::i18n::language() == "de" && day.len() == 10 { format!("{}.{}.{}", &day[8..10], &day[5..7], &day[..4]) } else { day.to_string() }
 }
 
-// ---------- The chart of the window's Power tab (python\energy.py: buckets, fmt_energy, fmt_duration) ----------
+// ---------- The chart of the window's Power tab ----------
 
 /// The three views of the chart.
 pub const VIEWS: [&str; 3] = ["day", "month", "year"];

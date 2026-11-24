@@ -53,7 +53,7 @@ pub enum ToMonitor {
     Fan { id: String, config: Value },
     /// The privacy switch in the window's header: on or off (not "toggle" – two quick clicks stay right).
     Privacy { on: bool },
-    /// Size and position when the window closes: "WxH+X+Y" in pixels, as the Python window wrote it.
+    /// Size and position when the window closes: "WxH+X+Y" in pixels (the format of version 2).
     Geometry { value: String },
 }
 

@@ -1,4 +1,4 @@
-# Makes a release: builds, packs the program (exe, manifest, README, python\ – not runtime\, lhm\, data\) into a
+# Makes a release: builds, packs the program (exe, bridge, manifest, README, detail_window.json – not data\) into a
 # zip, signs it, and publishes zip and signature as GitHub release v<version> – the version from Cargo.toml.
 # Programs that are installed find it with "Update".
 #
@@ -24,13 +24,12 @@ if ($released) { throw "$tag was already released - raise the version in Cargo.t
 
 # The sign tool is part of the Toolbox repo; it packs and signs in one step.
 $toolbox = Join-Path (Split-Path $PSScriptRoot -Parent) 'Toolbox'
-# What goes into the zip: "Set up" makes runtime\ and lhm\ on each PC, data\ is yours.
+# What goes into the zip: "Set up" copies the bridge from here into the protected folder and downloads
+# LibreHardwareMonitor there; data\ is yours. The window reads detail_window.json next to the exe.
 $stage = Join-Path ([IO.Path]::GetTempPath()) "hardware_monitor-release"
 if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
 New-Item -ItemType Directory $stage | Out-Null
-Copy-Item 'dist\HardwareMonitor.exe', 'dist\program.json', 'dist\README.md' $stage
-robocopy python (Join-Path $stage 'python') /E /XD __pycache__ /NFL /NDL /NJH /NJS /NP | Out-Null
-if ($LASTEXITCODE -ge 8) { throw "Copying python\ failed (robocopy code $LASTEXITCODE)" }
+Copy-Item 'dist\HardwareMonitor.exe', 'dist\LhmBridge.exe', 'dist\program.json', 'dist\README.md', 'detail_window.json' $stage
 cargo run --release --quiet --manifest-path (Join-Path $toolbox 'Cargo.toml') -p sign -- pack $stage "$name.zip"
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 Remove-Item $stage -Recurse -Force

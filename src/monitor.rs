@@ -1,10 +1,9 @@
-//! The Rust monitor (M4, step 2): what the Python part does in the background, without its window yet.
-//!
-//! It runs on the program's worker thread while "Use the Rust version" is on and the program is started. This exe
-//! itself has no admin rights; the bridge (`bridge.rs`) has them and reads LibreHardwareMonitor. Economical in the
-//! background like the Python part: CPU and GPU open first (the taskbar has values within a second), the rest
-//! loads meanwhile; each round reads only the CPU – the Nvidia temperature comes from `nvml.dll` directly – and the
-//! efficiency mode is on.
+//! The monitor: it runs on the program's worker thread while the program is started. This exe itself has no admin
+//! rights; the bridge (`bridge.rs`) has them and reads LibreHardwareMonitor. Economical in the background: CPU and
+//! GPU open first (the taskbar has values within a second), the rest loads meanwhile; each round reads only the CPU
+//! – the Nvidia temperature comes from `nvml.dll` directly – and the efficiency mode is on. While the detail window
+//! is open, it also reads what the window shows and sends it there (`link.rs`); it controls the fans (`fans.rs`)
+//! and logs the power (`energy.rs`, `plug.rs`).
 
 use std::net::Ipv4Addr;
 use std::time::{Duration, Instant, SystemTime};
@@ -30,7 +29,7 @@ const HEALTH_EVERY: Duration = Duration::from_secs(10);
 const RETRY: Duration = Duration::from_secs(10);
 /// While no plug was found: the next look.
 const LOOK_AGAIN: Duration = Duration::from_secs(60);
-/// CPU blue, GPU green – the stripes under the numbers in the taskbar, as the Python monitor had them.
+/// CPU blue, GPU green – the stripes under the numbers in the taskbar, as the icons of version 2 had them.
 const STRIPE_CPU: u32 = 0x468cff;
 const STRIPE_GPU: u32 = 0x76b900;
 
@@ -125,12 +124,12 @@ fn report(phase: Phase, message: String) -> Report {
     Report { phase, message, ..Report::starting() }
 }
 
-/// Whether the monitor should go on: started, and still the Rust version.
+/// Whether the monitor should go on: the program is started.
 fn wanted(rt: &Runtime<Monitor>) -> bool {
-    rt.running() && rt.with(|_, s| s.rust_version)
+    rt.running()
 }
 
-/// Runs until the program is stopped or switched back to the Python monitor.
+/// Runs until the program is stopped.
 pub fn run(rt: &Runtime<Monitor>) {
     publish(rt, Report::starting());
     while wanted(rt) {
@@ -174,9 +173,6 @@ fn session(rt: &Runtime<Monitor>, b: &Bridge) -> Result<(), String> {
     let mut plug = PlugState::new();
     let mut controller = Controller::default();
     let (mut later, mut complete, mut battery) = (false, false, false);
-    let mut fan_config = Map::new();
-    let mut geometry = String::new();
-    let mut fan_file_seen = None;
     let mut present: Option<Vec<String>> = None;
     let mut drives: Option<Value> = None;
     let mut drives_read: Option<Instant> = None;
@@ -186,17 +182,8 @@ fn session(rt: &Runtime<Monitor>, b: &Bridge) -> Result<(), String> {
             break Ok(());
         }
         crate::do_orders(rt);
-        crate::take_over_changes(rt);
         let s = rt.with(|_, s| s.clone());
-        // What the window and the page changed: the fan curves live in the monitor's file.
-        let file = crate::monitor_file();
-        let seen = crate::modified(&file);
-        if seen != fan_file_seen {
-            fan_file_seen = seen;
-            let map = crate::read_json(&file);
-            fan_config = map.get("fan_control").and_then(Value::as_object).cloned().unwrap_or_default();
-            geometry = map.get("window").and_then(Value::as_str).unwrap_or_default().to_string();
-        }
+        let fan_config: &Map<String, Value> = &s.fan_control;
         let on = s.efficiency_mode != "off";
         if efficiency != Some(on) {
             kit::process::efficiency_mode(on);
@@ -258,9 +245,9 @@ fn session(rt: &Runtime<Monitor>, b: &Bridge) -> Result<(), String> {
             plug_log.add(v.kwh, at);
         }
 
-        if controller.wanted(&fan_config) {
+        if controller.wanted(fan_config) {
             let hot = (s.cpu_hot_temp as f64, s.gpu_hot_temp as f64);
-            controller.apply(&mut Through(b), &fan_config, (cpu, gpu), hot, now);
+            controller.apply(&mut Through(b), fan_config, (cpu, gpu), hot, now);
         }
 
         let summary = summary(&s, estimate, plug_view.watts, &energy, &plug_log);
@@ -287,7 +274,7 @@ fn session(rt: &Runtime<Monitor>, b: &Bridge) -> Result<(), String> {
                 gpu_warn_temp: s.gpu_warn_temp,
                 gpu_hot_temp: s.gpu_hot_temp,
                 privacy_mode: s.privacy_mode,
-                window: geometry.clone(),
+                window: s.window.clone(),
                 energy_logging: s.energy_logging,
                 energy_other_watts: s.energy_other_watts,
                 energy_psu_efficiency: s.energy_psu_efficiency,
@@ -341,7 +328,7 @@ fn session(rt: &Runtime<Monitor>, b: &Bridge) -> Result<(), String> {
 
         let open = rt.with(|p, _| p.window.is_some() && p.window_want.anything());
         let mut every = Duration::from_secs_f64(if open { s.popup_interval } else { s.icon_interval }.max(0.5));
-        if controller.wanted(&fan_config) {
+        if controller.wanted(fan_config) {
             every = every.min(fans::INTERVAL);
         }
         rt.sleep(every);

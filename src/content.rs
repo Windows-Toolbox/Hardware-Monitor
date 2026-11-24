@@ -1,6 +1,5 @@
 //! What the detail window shows: `detail_window.json`, read each time the window opens – edit it, close the
-//! window, open it again, and the change is there (the "save, reopen, see it" loop of the Python part's
-//! `detail_window_content.py`, which this file replaces). Its `help` at the top describes the format.
+//! window, open it again, and the change is there. Its `help` at the top describes the format.
 //!
 //! From it and a reading come the rows of a tab: device headings, sections that fold shut, values.
 

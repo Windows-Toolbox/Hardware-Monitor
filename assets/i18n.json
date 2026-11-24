@@ -4,8 +4,8 @@
     "en": "Status"
   },
   "page.stopped": {
-    "de": "Gestoppt – „Starten“ oben startet die Sensoren (mit Adminrechten über die Aufgabe, ohne Nachfrage).",
-    "en": "Stopped – \"Start\" above starts the sensors (with admin rights through the task, without asking)."
+    "de": "Gestoppt – „Starten“ oben startet den Monitor.",
+    "en": "Stopped – “Start” above starts the monitor."
   },
   "page.order.hint": {
     "de": "Die neue Reihenfolge gilt nach „Stoppen“ und „Starten“.",
@@ -16,24 +16,8 @@
     "en": "Setup"
   },
   "page.setup.text": {
-    "de": "Der Monitor braucht ein eigenes Python (runtime\\), LibreHardwareMonitor (lhm\\), den Treiber PawnIO und eine Aufgabe in der Aufgabenplanung, die die Sensoren mit Adminrechten startet. „Einrichten“ öffnet ein Fenster, erledigt, was fehlt, und fragt dabei einmal nach Adminrechten. Ob der Monitor mit Windows startet, stellst du oben mit „Mit Windows starten“ ein.",
-    "en": "The monitor needs its own Python (runtime\\), LibreHardwareMonitor (lhm\\), the driver PawnIO and a task in Task Scheduler that starts the sensors with admin rights. \"Set up\" opens a window, does what is missing and asks for admin rights once. Whether the monitor starts with Windows is the switch \"Start with Windows\" above."
-  },
-  "page.setup.runtime": {
-    "de": "Python in runtime\\",
-    "en": "Python in runtime\\"
-  },
-  "page.setup.lhm": {
-    "de": "LibreHardwareMonitor in lhm\\",
-    "en": "LibreHardwareMonitor in lhm\\"
-  },
-  "page.setup.pawnio": {
-    "de": "Treiber PawnIO",
-    "en": "Driver PawnIO"
-  },
-  "page.setup.task": {
-    "de": "Aufgabe „{task}“",
-    "en": "Task \"{task}\""
+    "de": "Der Monitor läuft ohne Adminrechte. Nur ein kleiner Teil braucht sie: die Brücke zu LibreHardwareMonitor, die die Sensoren liest und die Lüfter steuert. „Einrichten“ installiert den Treiber PawnIO, legt die Brücke und LibreHardwareMonitor nach {folder} – dort darf nur ein Admin schreiben – und trägt die Aufgabe {task} ein, die die Brücke ohne Nachfrage startet. Windows fragt dafür einmal nach Adminrechten. Ob der Monitor mit Windows startet, stellst du oben mit „Mit Windows starten“ ein.",
+    "en": "The monitor runs without admin rights. Only a small part needs them: the bridge to LibreHardwareMonitor, which reads the sensors and controls the fans. “Set up” installs the driver PawnIO, puts the bridge and LibreHardwareMonitor into {folder} – only an admin can write there – and registers the task {task}, which starts the bridge without a prompt. Windows asks for admin rights once. Whether the monitor starts with Windows is the switch “Start with Windows” above."
   },
   "page.setup.there": {
     "de": "{what}: da",
@@ -43,33 +27,13 @@
     "de": "{what}: fehlt",
     "en": "{what}: missing"
   },
-  "page.setup.elsewhere": {
-    "de": "{what}: zeigt auf einen anderen Ort ({target}) – „Einrichten“ stellt sie hierher um",
-    "en": "{what}: points elsewhere ({target}) – \"Set up\" points it here"
-  },
   "page.setup.checking": {
     "de": "Prüfe die Einrichtung …",
     "en": "Checking the setup …"
   },
-  "page.setup.running": {
-    "de": "Einrichten läuft – siehe das Fenster dazu",
-    "en": "Setting up – see its window"
-  },
   "page.setup.button": {
     "de": "Einrichten",
     "en": "Set up"
-  },
-  "page.setup.removing": {
-    "de": "Einrichtung wird entfernt – siehe das Fenster dazu",
-    "en": "Removing the setup – see its window"
-  },
-  "page.setup.remove.text": {
-    "de": "Vor dem Löschen des Ordners: „Einrichtung entfernen“ beendet die Sensoren, löscht die Aufgabe und fragt, ob auch PawnIO weg soll (andere Programme können es nutzen). runtime\\ und lhm\\ liegen in diesem Ordner und gehen mit ihm.",
-    "en": "Before deleting the folder: \"Remove setup\" stops the sensors, deletes the task and asks whether PawnIO should go too (other programs may use it). runtime\\ and lhm\\ lie in this folder and go with it."
-  },
-  "page.setup.remove": {
-    "de": "Einrichtung entfernen",
-    "en": "Remove setup"
   },
   "page.setup.again": {
     "de": "Neu prüfen",
@@ -136,8 +100,8 @@
     "en": "Sensor in the GPU icon"
   },
   "page.sensor.text": {
-    "de": "Gibt es den gewählten Sensor nicht, wird automatisch gewählt. Andere Sensornamen gehen über die Einstellungsdatei (alle Namen zeigt „hardware_monitor.py --list“).",
-    "en": "If the chosen sensor doesn't exist, one is chosen automatically. Other sensor names go through the settings file (\"hardware_monitor.py --list\" shows all names)."
+    "de": "Gibt es den gewählten Sensor nicht, wird automatisch gewählt. Andere Sensornamen gehen über die Einstellungsdatei – so, wie sie im Detailfenster heißen.",
+    "en": "If the chosen sensor doesn't exist, one is chosen automatically. Other sensor names go through the settings file – as the detail window names them."
   },
   "page.colors.text": {
     "de": "Farbe der Temperaturen – getrennt, weil CPUs unter Last deutlich heißer werden dürfen als Grafikkarten. Mainboard und Laufwerke im Detailfenster richten sich nach der CPU.",
@@ -240,8 +204,8 @@
     "en": "Detail window"
   },
   "page.detail_window.text": {
-    "de": "Welche Werte im Detailfenster stehen, legst du in detail_window_content.py fest – eine Zeile pro Wert. Änderungen erscheinen beim nächsten Öffnen des Fensters.",
-    "en": "Which values the detail window shows is set in detail_window_content.py – one line per value. Changes appear the next time the window opens."
+    "de": "Welche Werte im Detailfenster stehen, legst du in detail_window.json fest – „help“ ganz oben erklärt das Format. Änderungen erscheinen beim nächsten Öffnen des Fensters.",
+    "en": "Which values the detail window shows is set in detail_window.json – its “help” at the top explains the format. Changes appear the next time the window opens."
   },
   "page.open_folder": {
     "de": "Ordner öffnen",
@@ -271,18 +235,6 @@
     "de": "Läuft",
     "en": "Running"
   },
-  "message.not_set_up": {
-    "de": "Noch nicht eingerichtet – „Einrichten“ unten",
-    "en": "Not set up yet – \"Set up\" below"
-  },
-  "message.start_failed": {
-    "de": "Die Aufgabe „{task}“ ließ sich nicht starten",
-    "en": "The task \"{task}\" could not be started"
-  },
-  "message.no_answer": {
-    "de": "Die Sensoren antworten nicht – Details in data\\monitor.log",
-    "en": "The sensors don't answer – details in data\\monitor.log"
-  },
   "toast.not_running": {
     "de": "Der Hardware Monitor läuft nicht – erst starten",
     "en": "The Hardware Monitor isn't running – start it first"
@@ -298,14 +250,6 @@
   "toast.reset": {
     "de": "Zurückgesetzt",
     "en": "Reset"
-  },
-  "page.bridge": {
-    "de": "Sensoren für die Rust-Version (Vorschau)",
-    "en": "Sensors for the Rust version (preview)"
-  },
-  "page.bridge.text": {
-    "de": "Die Rust-Version des Monitors läuft ohne Admin-Rechte. Nur ein kleiner Teil, die Brücke zu LibreHardwareMonitor, braucht sie. „Einrichten“ legt die Brücke und LibreHardwareMonitor nach {folder} – dort darf nur ein Admin schreiben – und trägt die Aufgabe {task} ein, die sie ohne Nachfrage startet. Windows fragt dafür einmal nach Admin-Rechten. Der jetzige Monitor (Python) bleibt davon unberührt.",
-    "en": "The Rust version of the monitor runs without admin rights. Only a small part, the bridge to LibreHardwareMonitor, needs them. “Set up” puts the bridge and LibreHardwareMonitor into {folder} – only an admin can write there – and registers the task {task}, which starts it without a prompt. Windows asks for admin rights once. The current monitor (Python) is not touched."
   },
   "page.bridge.outdated": {
     "de": "{what}: eine andere Version – „Einrichten“ ersetzt sie",
@@ -332,8 +276,8 @@
     "en": "Uninstall"
   },
   "page.bridge.pawnio": {
-    "de": "„Deinstallieren“ entfernt die Aufgabe und den Ordner. PawnIO bleibt installiert – der jetzige Monitor braucht es auch.",
-    "en": "“Uninstall” removes the task and the folder. PawnIO stays installed – the current monitor needs it too."
+    "de": "„Deinstallieren“ entfernt die Aufgabe und den Ordner. PawnIO bleibt installiert, weil andere Programme es nutzen können – entfernen lässt es sich in den Windows-Einstellungen unter Apps.",
+    "en": "“Uninstall” removes the task and the folder. PawnIO stays installed, as other programs may use it – it can be removed in Windows Settings under Apps."
   },
   "page.bridge.set_up": {
     "de": "Eingerichtet.",
@@ -375,22 +319,6 @@
     "de": "OHNE Admin-Rechte",
     "en": "WITHOUT admin rights"
   },
-  "page.version": {
-    "de": "Version",
-    "en": "Version"
-  },
-  "page.version.text": {
-    "de": "Der Hardware Monitor wird gerade nach Rust umgebaut. Die Rust-Version braucht kein Python mehr und läuft ohne Admin-Rechte (nur ihre Brücke hat sie – siehe „Sensoren für die Rust-Version“). Du kannst jederzeit zurückschalten: beide Versionen nutzen dieselben Einstellungen, Lüfterkurven und Stromdaten.",
-    "en": "The Hardware Monitor is being rebuilt in Rust. The Rust version needs no Python and runs without admin rights (only its bridge has them – see “Sensors for the Rust version”). You can switch back any time: both versions use the same settings, fan curves and power data."
-  },
-  "page.version.switch": {
-    "de": "Rust-Version verwenden (Vorschau)",
-    "en": "Use the Rust version (preview)"
-  },
-  "page.version.missing": {
-    "de": "Noch nicht in der Rust-Version: das Detailfenster (Tabs, Diagramm, Kurven-Editor, Laufwerkszustand). Deine gespeicherten Lüfterkurven greifen trotzdem.",
-    "en": "Not in the Rust version yet: the detail window (tabs, chart, curve editor, drive health). Your saved fan curves apply anyway."
-  },
   "page.fan.controlled": {
     "de": "Lüfter {name}: {pct} % (Kurve)",
     "en": "Fan {name}: {pct} % (curve)"
@@ -412,8 +340,8 @@
     "en": "Taskbar"
   },
   "page.taskbar.text": {
-    "de": "Zeigt CPU- und GPU-Temperatur als Zahlen neben dem Symbol der Toolbox, in der Ampelfarbe; der Streifen darunter sagt, welche welche ist (blau = CPU, grün = GPU). Nur in der Rust-Version – die Python-Version hat ihre eigenen Symbole.",
-    "en": "Shows CPU and GPU temperature as numbers next to the Toolbox's icon, in the traffic-light colour; the stripe below tells which is which (blue = CPU, green = GPU). Only in the Rust version – the Python version has icons of its own."
+    "de": "Zeigt CPU- und GPU-Temperatur als Zahlen neben dem Symbol der Toolbox, in der Ampelfarbe; der Streifen darunter sagt, welche welche ist (blau = CPU, grün = GPU).",
+    "en": "Shows CPU and GPU temperature as numbers next to the Toolbox's icon, in the traffic-light colour; the stripe below tells which is which (blue = CPU, green = GPU)."
   },
   "page.taskbar.switch": {
     "de": "Temperaturen in der Taskleiste",
@@ -432,8 +360,8 @@
     "en": "Smart plug"
   },
   "page.plug.text": {
-    "de": "Misst den Strom echt statt zu schätzen – für alles, was an der Steckdose hängt (z. B. der ganze Schreibtisch). Im Heimnetz, ohne Cloud. Bisher: Anker SOLIX Smart Plug (Gen 2). Nur in der Rust-Version.",
-    "en": "Measures the power instead of estimating it – for everything on the plug (e.g. the whole desk). On the home network, without the cloud. So far: Anker SOLIX Smart Plug (Gen 2). Only in the Rust version."
+    "de": "Misst den Strom echt statt zu schätzen – für alles, was an der Steckdose hängt (z. B. der ganze Schreibtisch). Im Heimnetz, ohne Cloud. Bisher: Anker SOLIX Smart Plug (Gen 2).",
+    "en": "Measures the power instead of estimating it – for everything on the plug (e.g. the whole desk). On the home network, without the cloud. So far: Anker SOLIX Smart Plug (Gen 2)."
   },
   "page.plug.steps": {
     "de": "Einmal einrichten: In der Anker-App die Steckdose öffnen → Zahnrad → „Three-Party Control Settings“ → „Modbus TCP“ einschalten. Die Steckdose wird dann von selbst gefunden; die IP-Adresse, die die App dort zeigt, brauchst du nur, wenn das nicht klappt.",
@@ -452,8 +380,8 @@
     "en": "Name (empty = from its serial number)"
   },
   "page.plug.stopped": {
-    "de": "Wird gelesen, sobald die Rust-Version läuft.",
-    "en": "Read as soon as the Rust version runs."
+    "de": "Wird gelesen, sobald der Monitor läuft.",
+    "en": "Read as soon as the monitor runs."
   },
   "plug.not_found": {
     "de": "Keine Steckdose im Heimnetz gefunden – ist „Modbus TCP“ in der Anker-App an? Es wird jede Minute neu gesucht.",
@@ -524,8 +452,8 @@
     "en": "Privacy mode: off"
   },
   "message.bridge_not_set_up": {
-    "de": "Die Brücke ist noch nicht eingerichtet – „Einrichten“ unter „Sensoren für die Rust-Version“.",
-    "en": "The bridge is not set up yet – “Set up” under “Sensors for the Rust version”."
+    "de": "Noch nicht eingerichtet – „Einrichten“ unten.",
+    "en": "Not set up yet – “Set up” below."
   },
   "message.bridge_lost": {
     "de": "Die Brücke hat aufgehört zu antworten ({why}) – neuer Versuch in 10 s.",
@@ -596,12 +524,12 @@
     "en": "Loading sensor data …"
   },
   "window.no_sensors": {
-    "de": "Keine passenden Sensoren – die Namen zeigt „python hardware_monitor.py --list“.",
-    "en": "No matching sensors – \"python hardware_monitor.py --list\" shows the names."
+    "de": "Keine passenden Sensoren auf diesem PC.",
+    "en": "No matching sensors on this PC."
   },
   "window.content_error": {
-    "de": "Fehler in detail_window_content.py (Details im Log): {error}",
-    "en": "Error in detail_window_content.py (details in the log): {error}"
+    "de": "Fehler in detail_window.json (Details im Log): {error}",
+    "en": "Error in detail_window.json (details in the log): {error}"
   },
   "window.toolbox_error": {
     "de": "Toolbox ließ sich nicht öffnen – Details im Log",
@@ -2051,12 +1979,8 @@
     "de": "USB-Gerät",
     "en": "USB device"
   },
-  "window.coming": {
-    "de": "Dieser Tab kommt in der Rust-Version als Nächstes.",
-    "en": "This tab comes next in the Rust version."
-  },
   "window.no_monitor": {
-    "de": "Der Monitor liefert keine Werte. Läuft der Hardware Monitor, und ist auf seiner Seite „Rust-Version verwenden“ an? Das Detailfenster der Rust-Version braucht ihn.",
-    "en": "The monitor sends no values. Is the Hardware Monitor running, with “Use the Rust version” switched on on its page? The Rust version's detail window needs it."
+    "de": "Der Monitor liefert keine Werte. Läuft der Hardware Monitor, und ist er eingerichtet? Beides zeigt seine Seite in der Toolbox.",
+    "en": "The monitor sends no values. Is the Hardware Monitor running, and is it set up? Its page in the Toolbox shows both."
   }
 }

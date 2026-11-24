@@ -1,4 +1,4 @@
-//! The tab "Power" of the detail window (from `python\energy_view.py`): the power right now, today, this month and
+//! The tab "Power" of the detail window (as in version 2): the power right now, today, this month and
 //! how long the PC has been on, and a bar chart of the log – per hour for the last 24 hours, per day for the last 30
 //! days, per month for the last 12 months.
 //!
