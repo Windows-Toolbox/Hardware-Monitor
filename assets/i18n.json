@@ -374,5 +374,165 @@
   "bridge.test.no_admin": {
     "de": "OHNE Admin-Rechte",
     "en": "WITHOUT admin rights"
+  },
+  "page.version": {
+    "de": "Version",
+    "en": "Version"
+  },
+  "page.version.text": {
+    "de": "Der Hardware Monitor wird gerade nach Rust umgebaut. Die Rust-Version braucht kein Python mehr und läuft ohne Admin-Rechte (nur ihre Brücke hat sie – siehe „Sensoren für die Rust-Version“). Du kannst jederzeit zurückschalten: beide Versionen nutzen dieselben Einstellungen, Lüfterkurven und Stromdaten.",
+    "en": "The Hardware Monitor is being rebuilt in Rust. The Rust version needs no Python and runs without admin rights (only its bridge has them – see “Sensors for the Rust version”). You can switch back any time: both versions use the same settings, fan curves and power data."
+  },
+  "page.version.switch": {
+    "de": "Rust-Version verwenden (Vorschau)",
+    "en": "Use the Rust version (preview)"
+  },
+  "page.version.missing": {
+    "de": "Noch nicht in der Rust-Version: das Detailfenster (Tabs, Diagramm, Kurven-Editor, Laufwerkszustand). Deine gespeicherten Lüfterkurven greifen trotzdem.",
+    "en": "Not in the Rust version yet: the detail window (tabs, chart, curve editor, drive health). Your saved fan curves apply anyway."
+  },
+  "page.fan.controlled": {
+    "de": "Lüfter {name}: {pct} % (Kurve)",
+    "en": "Fan {name}: {pct} % (curve)"
+  },
+  "page.fan.hot": {
+    "de": "Lüfter {name}: {pct} % – rote Grenze erreicht",
+    "en": "Fan {name}: {pct} % – red limit reached"
+  },
+  "page.fan.no_temperature": {
+    "de": "Lüfter {name}: keine Temperatur – zurück an die Automatik",
+    "en": "Fan {name}: no temperature – handed back to automatic"
+  },
+  "page.fan.error": {
+    "de": "Lüfter {name}: ließ sich nicht setzen – zurück an die Automatik",
+    "en": "Fan {name}: could not be set – handed back to automatic"
+  },
+  "page.taskbar": {
+    "de": "Taskleiste",
+    "en": "Taskbar"
+  },
+  "page.taskbar.text": {
+    "de": "Zeigt CPU- und GPU-Temperatur als Zahlen neben dem Symbol der Toolbox, in der Ampelfarbe; der Streifen darunter sagt, welche welche ist (blau = CPU, grün = GPU). Nur in der Rust-Version – die Python-Version hat ihre eigenen Symbole.",
+    "en": "Shows CPU and GPU temperature as numbers next to the Toolbox's icon, in the traffic-light colour; the stripe below tells which is which (blue = CPU, green = GPU). Only in the Rust version – the Python version has icons of its own."
+  },
+  "page.taskbar.switch": {
+    "de": "Temperaturen in der Taskleiste",
+    "en": "Temperatures in the taskbar"
+  },
+  "page.taskbar.hidden": {
+    "de": "Windows 11 versteckt neue Symbole erst im Überlauf (^). So holst du sie heraus: Einstellungen → Personalisierung → Taskleiste → „Andere Infobereichssymbole“ → bei „Windows Toolbox“ die Einträge einschalten (oder die Zahlen aus dem ^ in die Taskleiste ziehen). Nach dem Verschieben des Ordners musst du das noch einmal tun.",
+    "en": "Windows 11 first hides new icons in the overflow (^). To get them out: Settings → Personalisation → Taskbar → “Other system tray icons” → switch on the entries of “Windows Toolbox” (or drag the numbers out of the ^ into the taskbar). After moving the folder you have to do this again."
+  },
+  "page.taskbar.open": {
+    "de": "Taskleisten-Einstellungen öffnen",
+    "en": "Open taskbar settings"
+  },
+  "page.plug": {
+    "de": "Smarte Steckdose",
+    "en": "Smart plug"
+  },
+  "page.plug.text": {
+    "de": "Misst den Strom echt statt zu schätzen – für alles, was an der Steckdose hängt (z. B. der ganze Schreibtisch). Im Heimnetz, ohne Cloud. Bisher: Anker SOLIX Smart Plug (Gen 2). Nur in der Rust-Version.",
+    "en": "Measures the power instead of estimating it – for everything on the plug (e.g. the whole desk). On the home network, without the cloud. So far: Anker SOLIX Smart Plug (Gen 2). Only in the Rust version."
+  },
+  "page.plug.steps": {
+    "de": "Einmal einrichten: In der Anker-App die Steckdose öffnen → Zahnrad → „Three-Party Control Settings“ → „Modbus TCP“ einschalten. Die Steckdose wird dann von selbst gefunden; die IP-Adresse, die die App dort zeigt, brauchst du nur, wenn das nicht klappt.",
+    "en": "Set up once: in the Anker app open the plug → gear → “Three-Party Control Settings” → switch on “Modbus TCP”. The plug is then found by itself; you only need the IP address the app shows there if that does not work."
+  },
+  "page.plug.switch": {
+    "de": "Steckdose auslesen",
+    "en": "Read the plug"
+  },
+  "page.plug.address": {
+    "de": "IP-Adresse (leer = automatisch)",
+    "en": "IP address (empty = automatic)"
+  },
+  "page.plug.name": {
+    "de": "Name (leer = aus der Seriennummer)",
+    "en": "Name (empty = from its serial number)"
+  },
+  "page.plug.stopped": {
+    "de": "Wird gelesen, sobald die Rust-Version läuft.",
+    "en": "Read as soon as the Rust version runs."
+  },
+  "plug.not_found": {
+    "de": "Keine Steckdose im Heimnetz gefunden – ist „Modbus TCP“ in der Anker-App an? Es wird jede Minute neu gesucht.",
+    "en": "No plug found on the home network – is “Modbus TCP” switched on in the Anker app? Looking again every minute."
+  },
+  "plug.bad_address": {
+    "de": "„{address}“ ist keine IP-Adresse wie 192.168.2.109.",
+    "en": "“{address}” is not an IP address like 192.168.2.109."
+  },
+  "plug.default_name": {
+    "de": "Steckdose",
+    "en": "Plug"
+  },
+  "plug.reading": {
+    "de": "{name} ({address}): {watts} W bei {volts} V · Zähler {kwh} kWh",
+    "en": "{name} ({address}): {watts} W at {volts} V · counter {kwh} kWh"
+  },
+  "plug.no_answer": {
+    "de": "{name} ({address}) antwortet nicht: {why}",
+    "en": "{name} ({address}) does not answer: {why}"
+  },
+  "page.power.now": {
+    "de": "jetzt ≈ {watts} W",
+    "en": "now ≈ {watts} W"
+  },
+  "page.power.desk_now": {
+    "de": "Steckdose jetzt {watts} W (gemessen)",
+    "en": "plug now {watts} W (measured)"
+  },
+  "page.power.pc_now": {
+    "de": "davon PC ≈ {watts} W (geschätzt)",
+    "en": "of it the PC ≈ {watts} W (estimated)"
+  },
+  "page.power.others": {
+    "de": "übrige Geräte ≈ {watts} W",
+    "en": "other devices ≈ {watts} W"
+  },
+  "page.power.today": {
+    "de": "heute {energy} ({cost})",
+    "en": "today {energy} ({cost})"
+  },
+  "page.power.month": {
+    "de": "diesen Monat {energy} ({cost})",
+    "en": "this month {energy} ({cost})"
+  },
+  "page.power.all": {
+    "de": "insgesamt {energy} ({cost})",
+    "en": "in total {energy} ({cost})"
+  },
+  "page.power.since": {
+    "de": "seit {since}",
+    "en": "since {since}"
+  },
+  "page.power.nothing_yet": {
+    "de": "Mitschreiben ist an – noch nichts gezählt",
+    "en": "Logging is on – nothing counted yet"
+  },
+  "page.power.off": {
+    "de": "Mitschreiben ist aus",
+    "en": "Logging is off"
+  },
+  "tray.privacy_on": {
+    "de": "Privacy mode: an",
+    "en": "Privacy mode: on"
+  },
+  "tray.privacy_off": {
+    "de": "Privacy mode: aus",
+    "en": "Privacy mode: off"
+  },
+  "toast.no_window_yet": {
+    "de": "Das Detailfenster kommt in der Rust-Version erst noch.",
+    "en": "The detail window is still to come in the Rust version."
+  },
+  "message.bridge_not_set_up": {
+    "de": "Die Brücke ist noch nicht eingerichtet – „Einrichten“ unter „Sensoren für die Rust-Version“.",
+    "en": "The bridge is not set up yet – “Set up” under “Sensors for the Rust version”."
+  },
+  "message.bridge_lost": {
+    "de": "Die Brücke hat aufgehört zu antworten ({why}) – neuer Versuch in 10 s.",
+    "en": "The bridge stopped answering ({why}) – trying again in 10 s."
   }
 }

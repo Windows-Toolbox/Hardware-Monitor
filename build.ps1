@@ -61,9 +61,20 @@ if (-not (Test-Path (Join-Path $lhmDir 'LibreHardwareMonitorLib.dll'))) {
 }
 $framework = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319'
 $bridge = Join-Path $release 'LhmBridge.exe'
-& (Join-Path $framework 'csc.exe') /nologo /target:winexe /optimize+ "/out:$bridge" '/win32icon:assets\icon.ico' `
-    "/r:$(Join-Path $lhmDir 'LibreHardwareMonitorLib.dll')" "/r:$(Join-Path $framework 'System.Web.Extensions.dll')" `
-    "/r:$(Join-Path $framework 'Microsoft.CSharp.dll')" "/r:$(Join-Path $framework 'System.Core.dll')" 'bridge\LhmBridge.cs'
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-Copy-Item $bridge 'dist\LhmBridge.exe' -Force
+# Only when its source or the LHM version changed: this csc gives different bytes for the same source every time,
+# and different bytes are "another version" for "Set up" – one admin prompt more for nothing.
+$inputs = 'bridge\LhmBridge.cs', 'lhm.json', 'assets\icon.ico'
+$stale = -not (Test-Path $bridge) -or ($inputs | Where-Object { (Get-Item $_).LastWriteTimeUtc -gt (Get-Item $bridge).LastWriteTimeUtc })
+if ($stale) {
+    & (Join-Path $framework 'csc.exe') /nologo /target:winexe /optimize+ "/out:$bridge" '/win32icon:assets\icon.ico' `
+        "/r:$(Join-Path $lhmDir 'LibreHardwareMonitorLib.dll')" "/r:$(Join-Path $framework 'System.Web.Extensions.dll')" `
+        "/r:$(Join-Path $framework 'Microsoft.CSharp.dll')" "/r:$(Join-Path $framework 'System.Core.dll')" 'bridge\LhmBridge.cs'
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+}
+$installedBridge = 'dist\LhmBridge.exe'
+$same = (Test-Path $installedBridge) -and
+    [Linq.Enumerable]::SequenceEqual([IO.File]::ReadAllBytes((Resolve-Path $bridge)), [IO.File]::ReadAllBytes((Resolve-Path $installedBridge)))
+if (-not $same) {
+    Copy-Item $bridge $installedBridge -Force
+}
 Write-Host "Done: dist\$exe, dist\LhmBridge.exe"

@@ -17,6 +17,12 @@
 #![windows_subsystem = "windows"]
 
 mod bridge;
+mod energy;
+mod fans;
+mod monitor;
+mod nvml;
+mod plug;
+mod sensors;
 
 use std::io::{BufRead, BufReader, Write};
 use std::net::{SocketAddr, TcpStream};
@@ -27,7 +33,7 @@ use std::time::{Duration, Instant, SystemTime};
 
 use kit::app::{self, Program, Runtime};
 use kit::page::Builder;
-use kit::proto::{Health, Status, Tray};
+use kit::proto::{Health, Live, MenuEntry, Status, Tray};
 use kit::setup::{self, Done};
 use kit::{i18n, process, t};
 use serde::{Deserialize, Serialize};
@@ -80,7 +86,21 @@ pub struct Settings {
     pub energy_currency: String,
     pub energy_other_watts: u32,
     pub energy_psu_efficiency: u32,
+    // ----- only the Rust version (M4) – not in the monitor's file -----
+    /// Start runs the Rust monitor instead of the Python part (a preview until the port is done).
+    pub rust_version: bool,
+    /// The two temperatures as numbers next to the Toolbox's icon (DESIGN.md 6) – off by default.
+    pub taskbar_temps: bool,
+    /// Read a smart plug's measured power.
+    pub plug: bool,
+    /// "" = found by itself on the home network.
+    pub plug_address: String,
+    /// "" = the name from its serial number.
+    pub plug_name: String,
 }
+
+/// The settings only the Rust version has – the Python part neither knows nor needs them.
+const RUST_ONLY: [&str; 5] = ["rust_version", "taskbar_temps", "plug", "plug_address", "plug_name"];
 
 impl Default for Settings {
     fn default() -> Self {
@@ -101,6 +121,11 @@ impl Default for Settings {
             energy_currency: "€".into(),
             energy_other_watts: 40,
             energy_psu_efficiency: 87,
+            rust_version: false,
+            taskbar_temps: false,
+            plug: false,
+            plug_address: String::new(),
+            plug_name: String::new(),
         }
     }
 }
@@ -137,6 +162,9 @@ fn modified(file: &Path) -> Option<SystemTime> {
 /// The page's values as the Python part keeps them (the price as a number).
 fn to_monitor(s: &Settings) -> Map<String, Value> {
     let Ok(Value::Object(mut m)) = serde_json::to_value(s) else { return Map::new() };
+    for key in RUST_ONLY {
+        m.remove(key);
+    }
     match parse_price(&s.energy_price) {
         Some(price) => m["energy_price"] = json!(price),
         // Not a price: the monitor keeps the one it has.
@@ -332,11 +360,15 @@ struct Report {
     /// The order the running sensors were started with.
     order: Option<Vec<String>>,
     power_summary: Option<String>,
+    /// The Rust version: the numbers for the taskbar (empty when switched off).
+    live: Vec<Live>,
+    /// The Rust version with a smart plug: what it says.
+    plug: Option<monitor::PlugView>,
 }
 
 impl Report {
     fn starting() -> Report {
-        Report { phase: Phase::Starting, message: t!("message.starting"), temps: String::new(), order: None, power_summary: None }
+        Report { phase: Phase::Starting, message: t!("message.starting"), temps: String::new(), order: None, power_summary: None, live: vec![], plug: None }
     }
 
     fn health(&self) -> Health {
@@ -353,7 +385,7 @@ impl Report {
         let icons: Vec<String> = status["icons"].as_array().map(|a| a.iter().filter_map(|k| k.as_str().map(str::to_string)).collect()).unwrap_or_else(|| vec!["cpu".into(), "gpu".into()]);
         let temps = icons.iter().map(|k| format!("{} {}", k.to_uppercase(), temp(k))).collect::<Vec<_>>().join("  ·  ");
         let order = status["order"].as_array().map(|a| a.iter().filter_map(|k| k.as_str().map(str::to_string)).collect());
-        Report { phase: Phase::Running, message: t!("message.running"), temps, order, power_summary: status["power_summary"].as_str().map(str::to_string) }
+        Report { phase: Phase::Running, message: t!("message.running"), temps, order, power_summary: status["power_summary"].as_str().map(str::to_string), live: vec![], plug: None }
     }
 
     fn line(&self) -> String {
@@ -403,6 +435,10 @@ struct Monitor {
     /// The monitor's file as it was after our last look or write; a newer one was changed by the monitor itself.
     seen: Option<SystemTime>,
     bridge: BridgeView,
+    /// The Rust version: each controllable fan and what the control does with it.
+    fan_info: Vec<(String, fans::State)>,
+    /// "Delete all saved data" while the Rust monitor runs – it holds the logs and deletes them.
+    energy_delete_asked: bool,
 }
 
 impl Monitor {
@@ -418,6 +454,8 @@ impl Monitor {
             delete_asked: None,
             seen: None,
             bridge: BridgeView::default(),
+            fan_info: vec![],
+            energy_delete_asked: false,
         }
     }
 
@@ -512,6 +550,13 @@ impl Program for Monitor {
 
     fn page(&self, p: &mut Builder, s: &Settings) {
         let r = &self.report;
+        p.section(t!("page.version"), |p| {
+            p.text(t!("page.version.text"));
+            p.switch(t!("page.version.switch"), "rust_version");
+            if s.rust_version {
+                p.text(t!("page.version.missing"));
+            }
+        });
         p.section(t!("page.status"), |p| {
             if self.running {
                 p.status(r.line(), r.health());
@@ -521,6 +566,26 @@ impl Program for Monitor {
             } else {
                 p.text(t!("page.stopped"));
             }
+            if self.running && s.rust_version {
+                for (name, state) in &self.fan_info {
+                    let text = match (state.software, state.pct, state.note.as_deref()) {
+                        (true, Some(pct), Some("hot")) => t!("page.fan.hot", name = name, pct = pct),
+                        (true, Some(pct), _) => t!("page.fan.controlled", name = name, pct = pct),
+                        (_, _, Some("no_temperature")) => t!("page.fan.no_temperature", name = name),
+                        (_, _, Some("error")) => t!("page.fan.error", name = name),
+                        _ => continue,
+                    };
+                    p.status(text, if state.note.is_some() { Health::Warn } else { Health::Ok });
+                }
+            }
+        });
+        p.section(t!("page.taskbar"), |p| {
+            p.text(t!("page.taskbar.text"));
+            p.switch(t!("page.taskbar.switch"), "taskbar_temps");
+            p.text(t!("page.taskbar.hidden"));
+            p.buttons(|b| {
+                b.button(t!("page.taskbar.open"), "open_taskbar_settings");
+            });
         });
         // Open until everything is there; then it only takes room.
         if self.setup.ready() && self.setup.task == TaskState::Here {
@@ -587,6 +652,19 @@ impl Program for Monitor {
                 }
             });
         });
+        p.section(t!("page.plug"), |p| {
+            p.text(t!("page.plug.text"));
+            p.text(t!("page.plug.steps"));
+            p.switch(t!("page.plug.switch"), "plug");
+            if s.plug {
+                p.entry(t!("page.plug.address"), "plug_address");
+                p.entry(t!("page.plug.name"), "plug_name");
+                match (&r.plug, self.running && s.rust_version) {
+                    (Some(view), true) => p.status(view.line.clone(), view.health),
+                    _ => p.text(t!("page.plug.stopped")),
+                }
+            }
+        });
         p.section(t!("page.fans"), |p| {
             p.text(t!("page.fans.text"));
             p.buttons(|b| {
@@ -611,7 +689,15 @@ impl Program for Monitor {
     }
 
     fn tray(&self) -> Tray {
-        Tray { line: if self.running { self.report.line() } else { String::new() }, menu: vec![], live: vec![] }
+        if !self.running {
+            return Tray::default();
+        }
+        let mut menu = vec![];
+        if self.settings.rust_version {
+            let label = if self.settings.privacy_mode { t!("tray.privacy_on") } else { t!("tray.privacy_off") };
+            menu.push(MenuEntry { label, action: "toggle_privacy".into() });
+        }
+        Tray { line: self.report.line(), menu, live: self.report.live.clone() }
     }
 
     fn applied(&mut self, s: &Settings) {
@@ -642,6 +728,20 @@ impl Program for Monitor {
                 self.bridge.busy = Some(order);
                 self.orders.push(order);
             }
+            "toggle_privacy" => s.privacy_mode = !s.privacy_mode,
+            "open_taskbar_settings" => {
+                process::open("ms-settings:taskbar");
+            }
+            "show_power" | "show_fans" if s.rust_version => return Some(t!("toast.no_window_yet")),
+            "delete_power" if s.rust_version && self.running => {
+                if !self.delete_asked.is_some_and(|t| t.elapsed() < CONFIRM) {
+                    self.delete_asked = Some(Instant::now());
+                    return None;
+                }
+                self.delete_asked = None;
+                self.energy_delete_asked = true;
+                return Some(t!("toast.deleted"));
+            }
             "show_power" | "show_fans" => {
                 if ask(name).is_none() {
                     return Some(t!("toast.not_running"));
@@ -656,10 +756,10 @@ impl Program for Monitor {
                 // The running monitor has the values in memory too – it deletes both.
                 let ok = match ask("status") {
                     Some(_) => ask("energy_delete").is_some_and(|r| r["ok"].as_bool() == Some(true)),
-                    None => {
-                        let file = app::data_dir().join(ENERGY_FILE);
+                    None => [ENERGY_FILE, monitor::PLUG_FILE].iter().all(|f| {
+                        let file = app::data_dir().join(f);
                         !file.exists() || std::fs::remove_file(&file).is_ok()
-                    }
+                    }),
                 };
                 return Some(if ok { t!("toast.deleted") } else { t!("toast.delete_failed") });
             }
@@ -809,16 +909,38 @@ fn work(rt: Runtime<Monitor>) {
             rt.sleep(Duration::from_secs(3600));
         }
         rt.with(|p, _| p.running = true);
+        // Switching between the two versions while running goes straight from one to the other.
+        while rt.running() {
+            if rt.with(|_, s| s.rust_version) {
+                // Never both at once: two fan controls would fight.
+                if ask("status").is_some() {
+                    ask("quit");
+                }
+                monitor::run(&rt);
+            } else {
+                python(&rt, &mut language);
+            }
+        }
+        rt.with(|p, _| p.running = false);
         publish(&rt, Report::starting());
+    }
+}
+
+/// The Python monitor: started through its task, asked every two seconds, quit at the end – until the program
+/// stops or is switched to the Rust version.
+fn python(rt: &Runtime<Monitor>, language: &mut String) {
+    let rt = rt.clone();
+    publish(&rt, Report::starting());
+    {
         let since = Instant::now();
         let (mut seen_running, mut asked_task, mut quit_itself) = (false, false, false);
-        while rt.running() {
+        while rt.running() && !rt.with(|_, s| s.rust_version) {
             do_orders(&rt);
             // The Toolbox switched its language: the monitor follows.
-            if i18n::language() != language {
-                language = i18n::language();
+            if i18n::language() != *language {
+                *language = i18n::language();
                 let s = rt.with(|_, s| s.clone());
-                if export(&s, &language, &monitor_file()).unwrap_or(false) {
+                if export(&s, language, &monitor_file()).unwrap_or(false) {
                     rt.with(|p, _| p.seen = modified(&monitor_file()));
                     ask("reload");
                 }
@@ -864,8 +986,6 @@ fn work(rt: Runtime<Monitor>) {
         if !quit_itself {
             ask("quit");
         }
-        rt.with(|p, _| p.running = false);
-        publish(&rt, Report::starting());
     }
 }
 

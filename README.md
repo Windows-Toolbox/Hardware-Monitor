@@ -70,6 +70,9 @@ puts exe, manifest, README and `python\` into the zip (not `runtime\`, `lhm\`, `
 |---|---|
 | `src/main.rs` | the page, Start/Stop, the status, the settings file both ways, "Set up" |
 | `src/bridge.rs`, `bridge/LhmBridge.cs`, `lhm.json` | the Rust version's bridge to LibreHardwareMonitor (the one part with admin rights), its setup steps, the pinned LHM version |
+| `src/monitor.rs` | the Rust version's loop: reading, taskbar, power, plug, fans |
+| `src/sensors.rs`, `src/nvml.rs` | what the bridge reads and what is chosen from it; the Nvidia values straight from the driver |
+| `src/fans.rs`, `src/energy.rs`, `src/plug.rs` | fan curves, the power estimate and logs, the smart plug (Modbus TCP, mDNS) |
 | `assets/` | `i18n.json` (the page's texts), `icon.ico` |
 | `python/hardware_monitor.py` | the monitor: sensors, tray icons, remote control (port 47815) |
 | `python/detail_window.py`, `detail_window_content.py` | the detail window and what it shows |
@@ -94,6 +97,11 @@ puts exe, manifest, README and `python\` into the zip (not `runtime\`, `lhm\`, `
 - ✓ Rust port, step 1 (2026-11-24): the bridge `LhmBridge.exe` (`bridge\`, built by `build.ps1`) and "Set up" /
   "Test" / "Uninstall" for it in the section "Sensors for the Rust version (preview)" – hand test passed: one admin
   prompt, the bridge reads with admin rights, Clean up leaves it alone, Uninstall removes task and folder
+- ✓ Rust port, step 2 (2026-11-24): "Use the Rust version (preview)" – the monitor without a window: temperatures
+  (status line, numbers in the taskbar with a stripe, a click opens the page), privacy mode in the tray menu,
+  efficiency mode, the smart plug, switching back to Python – hand test passed
+- ◐ Rust port, step 2: fan curves applied by the Rust version – unit tests only (the curves can only be edited in
+  the Python window until step 3)
 
 ## Later
 
