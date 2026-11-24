@@ -1,0 +1,6 @@
+{
+  "comment": "LibreHardwareMonitor, unchanged, in a pinned version. A new version = these three values (Toolbox DESIGN.md 10); build.ps1 and the program both read them from here.",
+  "version": "0.9.6",
+  "url": "https://github.com/LibreHardwareMonitor/LibreHardwareMonitor/releases/download/v0.9.6/LibreHardwareMonitor.zip",
+  "sha256": "086D9F1B5A99E643EDC2CFAAAC16051685B551E4C5AC0B32A57C58C0E529C001"
+}

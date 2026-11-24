@@ -16,6 +16,8 @@
 //! A full port to Rust is planned (Toolbox\DESIGN.md 10, 11 – M4).
 #![windows_subsystem = "windows"]
 
+mod bridge;
+
 use std::io::{BufRead, BufReader, Write};
 use std::net::{SocketAddr, TcpStream};
 use std::os::windows::process::CommandExt;
@@ -26,6 +28,7 @@ use std::time::{Duration, Instant, SystemTime};
 use kit::app::{self, Program, Runtime};
 use kit::page::Builder;
 use kit::proto::{Health, Status, Tray};
+use kit::setup::{self, Done};
 use kit::{i18n, process, t};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value, json};
@@ -364,6 +367,24 @@ enum Order {
     SetUp,
     RemoveSetup,
     CheckSetup,
+    /// The bridge of the Rust monitor (M4, step 1): set up, uninstall, test, look again.
+    BridgeSetUp,
+    BridgeRemove,
+    BridgeTest,
+    BridgeCheck,
+}
+
+/// What the page shows about the bridge.
+#[derive(Debug, Clone, PartialEq, Default)]
+struct BridgeView {
+    /// Each step's name and how far it is; `None` = not checked yet.
+    steps: Option<Vec<(String, Done)>>,
+    /// Something of it is in Windows (task or protected folder).
+    present: bool,
+    /// An order runs right now.
+    busy: Option<Order>,
+    /// The last result: a line and its colour.
+    result: Option<(String, Health)>,
 }
 
 struct Monitor {
@@ -381,6 +402,7 @@ struct Monitor {
     delete_asked: Option<Instant>,
     /// The monitor's file as it was after our last look or write; a newer one was changed by the monitor itself.
     seen: Option<SystemTime>,
+    bridge: BridgeView,
 }
 
 impl Monitor {
@@ -395,6 +417,52 @@ impl Monitor {
             running: false,
             delete_asked: None,
             seen: None,
+            bridge: BridgeView::default(),
+        }
+    }
+
+    /// The Rust monitor's bridge – a preview until the port replaces the Python part (M4).
+    fn bridge_section(&self, p: &mut Builder) {
+        let b = &self.bridge;
+        p.text(t!("page.bridge.text", folder = setup::protected_dir(bridge::ID).display(), task = setup::task_name(bridge::ID)));
+        match &b.steps {
+            None => p.status(t!("page.setup.checking"), Health::Warn),
+            Some(steps) => {
+                for (name, done) in steps {
+                    match done {
+                        Done::Yes => p.status(t!("page.setup.there", what = name), Health::Ok),
+                        Done::No => p.status(t!("page.setup.missing", what = name), Health::Warn),
+                        Done::Outdated => p.status(t!("page.bridge.outdated", what = name), Health::Warn),
+                    }
+                }
+            }
+        }
+        if let Some(order) = b.busy {
+            p.status(
+                match order {
+                    Order::BridgeSetUp => t!("page.bridge.setting_up"),
+                    Order::BridgeRemove => t!("page.bridge.removing"),
+                    Order::BridgeTest => t!("page.bridge.testing"),
+                    _ => t!("page.setup.checking"),
+                },
+                Health::Warn,
+            );
+        } else if let Some((line, health)) = &b.result {
+            p.status(line.clone(), *health);
+        }
+        if b.busy.is_none() {
+            let ready = b.steps.as_ref().is_some_and(|s| s.iter().all(|(_, d)| *d == Done::Yes));
+            p.buttons(|x| {
+                x.button(t!("page.setup.button"), "bridge_set_up");
+                if ready {
+                    x.button(t!("page.bridge.test"), "bridge_test");
+                }
+                x.button(t!("page.setup.again"), "bridge_check");
+                if b.present {
+                    x.button(t!("page.bridge.remove"), "bridge_remove");
+                }
+            });
+            p.text(t!("page.bridge.pawnio"));
         }
     }
 
@@ -460,6 +528,7 @@ impl Program for Monitor {
         } else {
             p.section(t!("page.setup"), |p| self.setup_section(p));
         }
+        p.section(t!("page.bridge"), |p| self.bridge_section(p));
         p.section(t!("page.refresh"), |p| {
             p.text(t!("page.refresh.text"));
             let rates = |r: &[f64]| r.iter().map(|v| (*v, format!("{} s", v.to_string().replace('.', if i18n::language() == "de" { "," } else { "." })))).collect::<Vec<_>>();
@@ -563,6 +632,16 @@ impl Program for Monitor {
             "set_up" if !self.setting_up => self.orders.push(Order::SetUp),
             "remove_setup" if !self.setting_up => self.orders.push(Order::RemoveSetup),
             "check_setup" => self.orders.push(Order::CheckSetup),
+            "bridge_set_up" | "bridge_remove" | "bridge_test" | "bridge_check" if self.bridge.busy.is_none() => {
+                let order = match name {
+                    "bridge_set_up" => Order::BridgeSetUp,
+                    "bridge_remove" => Order::BridgeRemove,
+                    "bridge_test" => Order::BridgeTest,
+                    _ => Order::BridgeCheck,
+                };
+                self.bridge.busy = Some(order);
+                self.orders.push(order);
+            }
             "show_power" | "show_fans" => {
                 if ask(name).is_none() {
                     return Some(t!("toast.not_running"));
@@ -636,6 +715,10 @@ fn publish(rt: &Runtime<Monitor>, report: Report) {
 fn do_orders(rt: &Runtime<Monitor>) {
     let orders = rt.with(|p, _| std::mem::take(&mut p.orders));
     for order in orders {
+        if matches!(order, Order::BridgeSetUp | Order::BridgeRemove | Order::BridgeTest | Order::BridgeCheck) {
+            bridge_order(rt, order);
+            continue;
+        }
         if order != Order::CheckSetup {
             let remove = order == Order::RemoveSetup;
             rt.with(|p, _| {
@@ -660,6 +743,45 @@ fn do_orders(rt: &Runtime<Monitor>) {
     }
 }
 
+/// Looks how far the bridge's setup is.
+fn check_bridge(rt: &Runtime<Monitor>) {
+    let steps = bridge::steps().iter().map(|s| (s.name(), setup::done(bridge::ID, s))).collect();
+    let present = setup::present(bridge::ID);
+    rt.with(|p, _| {
+        p.bridge.steps = Some(steps);
+        p.bridge.present = present;
+    });
+    rt.changed();
+}
+
+fn bridge_order(rt: &Runtime<Monitor>, order: Order) {
+    rt.changed();
+    let result = match order {
+        Order::BridgeSetUp => Some(match setup::run(bridge::ID, &bridge::steps(), &t!("bridge.task_description")) {
+            Ok(()) => (t!("page.bridge.set_up"), Health::Ok),
+            Err(why) => (t!("page.bridge.failed", why = why), Health::Bad),
+        }),
+        // PawnIO stays: the Python monitor uses it too, and other programs may.
+        Order::BridgeRemove => Some(match setup::remove(bridge::ID, &bridge::steps(), false) {
+            Ok(()) => (t!("page.bridge.removed"), Health::Ok),
+            Err(why) => (t!("page.bridge.failed", why = why), Health::Bad),
+        }),
+        Order::BridgeTest => Some(match bridge::test() {
+            Ok(line) => (line, Health::Ok),
+            Err(why) => (t!("page.bridge.failed", why = why), Health::Bad),
+        }),
+        _ => None,
+    };
+    app::log(&format!("bridge {order:?}: {result:?}"));
+    rt.with(|p, _| {
+        p.bridge.busy = None;
+        if result.is_some() {
+            p.bridge.result = result;
+        }
+    });
+    check_bridge(rt);
+}
+
 /// What the monitor changed in its file itself (its right-click menu) comes onto the page.
 fn take_over_changes(rt: &Runtime<Monitor>) {
     let file = monitor_file();
@@ -678,6 +800,7 @@ fn work(rt: Runtime<Monitor>) {
     let setup = check_setup();
     rt.with(|p, _| p.setup = setup);
     rt.changed();
+    check_bridge(&rt);
     let mut language = i18n::language();
     loop {
         // While the program only serves its page, the worker looks after the page's orders only.

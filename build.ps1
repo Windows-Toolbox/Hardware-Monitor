@@ -38,4 +38,32 @@ if (Test-Path $installed) {
 # What the Toolbox reads; written by the build script from Cargo.toml.
 Copy-Item (Join-Path $release "$package.program.json") 'dist\program.json' -Force
 Copy-Item 'README.md' 'dist\README.md' -Force
-Write-Host "Done: dist\$exe"
+
+# ---------- the bridge: the one part with admin rights, C# (Toolbox\DESIGN.md 10) ----------
+# Compiled with the csc.exe that is part of Windows, against LibreHardwareMonitor in the version of lhm.json –
+# downloaded once into the build folder and checked by its SHA-256. "Set up" copies dist\LhmBridge.exe and that
+# same LibreHardwareMonitor into C:\Program Files\WindowsToolbox\hardware_monitor\.
+$lhm = Get-Content 'lhm.json' -Raw | ConvertFrom-Json
+$lhmDir = Join-Path $target "lhm-$($lhm.version)"
+if (-not (Test-Path (Join-Path $lhmDir 'LibreHardwareMonitorLib.dll'))) {
+    $zip = "$lhmDir.zip"
+    Write-Host "Downloading LibreHardwareMonitor $($lhm.version) for the bridge ..."
+    Invoke-WebRequest $lhm.url -OutFile $zip -UseBasicParsing
+    # .NET instead of Get-FileHash/Expand-Archive: their modules are missing when PowerShell 7 started this one.
+    $stream = [IO.File]::OpenRead($zip)
+    try { $hash = [BitConverter]::ToString([Security.Cryptography.SHA256]::Create().ComputeHash($stream)) -replace '-', '' }
+    finally { $stream.Dispose() }
+    if ($hash -ne $lhm.sha256) { Remove-Item $zip; throw "The checksum of $($lhm.url) does not match lhm.json." }
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    if (Test-Path $lhmDir) { Remove-Item $lhmDir -Recurse -Force }
+    [IO.Compression.ZipFile]::ExtractToDirectory($zip, $lhmDir)
+    Remove-Item $zip
+}
+$framework = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319'
+$bridge = Join-Path $release 'LhmBridge.exe'
+& (Join-Path $framework 'csc.exe') /nologo /target:winexe /optimize+ "/out:$bridge" '/win32icon:assets\icon.ico' `
+    "/r:$(Join-Path $lhmDir 'LibreHardwareMonitorLib.dll')" "/r:$(Join-Path $framework 'System.Web.Extensions.dll')" `
+    "/r:$(Join-Path $framework 'Microsoft.CSharp.dll')" "/r:$(Join-Path $framework 'System.Core.dll')" 'bridge\LhmBridge.cs'
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+Copy-Item $bridge 'dist\LhmBridge.exe' -Force
+Write-Host "Done: dist\$exe, dist\LhmBridge.exe"

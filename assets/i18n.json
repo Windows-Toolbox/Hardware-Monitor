@@ -298,5 +298,81 @@
   "toast.reset": {
     "de": "Zurückgesetzt",
     "en": "Reset"
+  },
+  "page.bridge": {
+    "de": "Sensoren für die Rust-Version (Vorschau)",
+    "en": "Sensors for the Rust version (preview)"
+  },
+  "page.bridge.text": {
+    "de": "Die Rust-Version des Monitors läuft ohne Admin-Rechte. Nur ein kleiner Teil, die Brücke zu LibreHardwareMonitor, braucht sie. „Einrichten“ legt die Brücke und LibreHardwareMonitor nach {folder} – dort darf nur ein Admin schreiben – und trägt die Aufgabe {task} ein, die sie ohne Nachfrage startet. Windows fragt dafür einmal nach Admin-Rechten. Der jetzige Monitor (Python) bleibt davon unberührt.",
+    "en": "The Rust version of the monitor runs without admin rights. Only a small part, the bridge to LibreHardwareMonitor, needs them. “Set up” puts the bridge and LibreHardwareMonitor into {folder} – only an admin can write there – and registers the task {task}, which starts it without a prompt. Windows asks for admin rights once. The current monitor (Python) is not touched."
+  },
+  "page.bridge.outdated": {
+    "de": "{what}: eine andere Version – „Einrichten“ ersetzt sie",
+    "en": "{what}: another version – “Set up” replaces it"
+  },
+  "page.bridge.setting_up": {
+    "de": "Wird eingerichtet … (Windows fragt nach Admin-Rechten)",
+    "en": "Setting up … (Windows asks for admin rights)"
+  },
+  "page.bridge.removing": {
+    "de": "Wird entfernt … (Windows fragt nach Admin-Rechten)",
+    "en": "Removing … (Windows asks for admin rights)"
+  },
+  "page.bridge.testing": {
+    "de": "Die Brücke wird gestartet und gefragt …",
+    "en": "Starting the bridge and asking it …"
+  },
+  "page.bridge.test": {
+    "de": "Testen",
+    "en": "Test"
+  },
+  "page.bridge.remove": {
+    "de": "Deinstallieren",
+    "en": "Uninstall"
+  },
+  "page.bridge.pawnio": {
+    "de": "„Deinstallieren“ entfernt die Aufgabe und den Ordner. PawnIO bleibt installiert – der jetzige Monitor braucht es auch.",
+    "en": "“Uninstall” removes the task and the folder. PawnIO stays installed – the current monitor needs it too."
+  },
+  "page.bridge.set_up": {
+    "de": "Eingerichtet.",
+    "en": "Set up."
+  },
+  "page.bridge.removed": {
+    "de": "Entfernt.",
+    "en": "Removed."
+  },
+  "page.bridge.failed": {
+    "de": "Hat nicht geklappt: {why}",
+    "en": "That did not work: {why}"
+  },
+  "bridge.no_task": {
+    "de": "Die Aufgabe ließ sich nicht starten – ist sie eingerichtet?",
+    "en": "The task could not be started – is it set up?"
+  },
+  "bridge.no_answer": {
+    "de": "Die Brücke hat sich nicht gemeldet.",
+    "en": "The bridge did not answer."
+  },
+  "bridge.gone": {
+    "de": "Die Brücke hat die Verbindung beendet.",
+    "en": "The bridge closed the connection."
+  },
+  "bridge.task_description": {
+    "de": "Startet die Brücke des Hardware Monitors zu LibreHardwareMonitor mit Admin-Rechten (Windows Toolbox). Kein Auslöser – nur der Hardware Monitor startet sie.",
+    "en": "Starts the Hardware Monitor's bridge to LibreHardwareMonitor with admin rights (Windows Toolbox). No trigger – only the Hardware Monitor starts it."
+  },
+  "bridge.test.ok": {
+    "de": "Brücke antwortet ({admin}, LibreHardwareMonitor {version}): {count} Werte, CPU {cpu}, GPU {gpu} – nach {seconds} s",
+    "en": "The bridge answers ({admin}, LibreHardwareMonitor {version}): {count} values, CPU {cpu}, GPU {gpu} – after {seconds} s"
+  },
+  "bridge.test.admin": {
+    "de": "mit Admin-Rechten",
+    "en": "with admin rights"
+  },
+  "bridge.test.no_admin": {
+    "de": "OHNE Admin-Rechte",
+    "en": "WITHOUT admin rights"
   }
 }
