@@ -77,9 +77,18 @@ fn read_hours(v: &Value) -> Hours {
     hours
 }
 
-/// A file's content – and whether it is of an older version (then it goes at the next save).
+/// A file's content – and whether it is of an older version (then it goes at the next save). A file that is there
+/// but cannot be read (a power cut while it was written) is not overwritten by the next save: it is put aside as
+/// `<name>.broken-<time>.json`, so something is left to rescue.
 fn read_file(file: &PathBuf) -> (Value, bool) {
-    let v = std::fs::read_to_string(file).ok().and_then(|s| serde_json::from_str::<Value>(&s).ok()).unwrap_or_default();
+    let v = match std::fs::read_to_string(file) {
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Value::Null,
+        read => match read.map_err(|e| e.to_string()).and_then(|s| serde_json::from_str::<Value>(&s).map_err(|e| e.to_string())) {
+            Ok(v) if v.is_object() => v,
+            Ok(_) => put_aside(file, "not an object"),
+            Err(why) => put_aside(file, &why),
+        },
+    };
     let old = !v.is_null() && v["version"].as_u64() != Some(VERSION);
     if old {
         kit::app::log(&format!("{} is of an older version – it is discarded", file.display()));
@@ -87,9 +96,28 @@ fn read_file(file: &PathBuf) -> (Value, bool) {
     (v, old)
 }
 
+fn put_aside(file: &PathBuf, why: &str) -> Value {
+    let stem = file.file_stem().unwrap_or_default().to_string_lossy();
+    let aside = file.with_file_name(format!("{stem}.broken-{}.json", minute_key(SystemTime::now()).replace(':', "-")));
+    let done = match std::fs::rename(file, &aside) {
+        Ok(()) => format!("put aside as {}", aside.display()),
+        Err(e) => format!("could not be put aside: {e}"),
+    };
+    kit::app::log(&format!("{} cannot be read ({why}) – {done}; the log starts anew", file.display()));
+    Value::Null
+}
+
+/// Writes a new file next to the old one, waits until it is really on the disk, and only then puts it in its place:
+/// after a power cut there is always the old file or the new one, complete – never half of one.
 fn write(file: &PathBuf, v: &Value) {
+    use std::io::Write;
     let tmp = file.with_extension("tmp");
-    let ok = std::fs::write(&tmp, v.to_string()).and_then(|()| std::fs::rename(&tmp, file));
+    let ok = std::fs::File::create(&tmp)
+        .and_then(|mut f| {
+            f.write_all(v.to_string().as_bytes())?;
+            f.sync_all()
+        })
+        .and_then(|()| std::fs::rename(&tmp, file));
     if let Err(e) = ok {
         kit::app::log(&format!("{} could not be saved: {e}", file.display()));
     }
@@ -646,6 +674,28 @@ mod tests {
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
         dir
+    }
+
+    #[test]
+    fn a_broken_file_is_put_aside_not_overwritten() {
+        let dir = temp("broken");
+        let file = dir.join("hardware_monitor_energy.json");
+        std::fs::write(&file, "").unwrap();
+        let mut log = EnergyLog::load(file.clone());
+        assert!(log.hours.is_empty());
+        let aside: Vec<_> = std::fs::read_dir(&dir).unwrap().map(|e| e.unwrap().file_name().to_string_lossy().into_owned()).collect();
+        assert!(aside.len() == 1 && aside[0].starts_with("hardware_monitor_energy.broken-"), "{aside:?}");
+        // The next save writes a new log beside it.
+        log.add(100.0, 50.0, Instant::now(), SystemTime::now());
+        log.add(100.0, 50.0, Instant::now() + Duration::from_secs(10), SystemTime::now());
+        log.save();
+        assert!(file.exists() && std::fs::read_dir(&dir).unwrap().count() == 2);
+        // A missing file is no reason to log anything.
+        std::fs::remove_dir_all(&dir).ok();
+        std::fs::create_dir_all(&dir).unwrap();
+        EnergyLog::load(file.clone());
+        assert_eq!(std::fs::read_dir(&dir).unwrap().count(), 0);
+        std::fs::remove_dir_all(&dir).ok();
     }
 
     #[test]

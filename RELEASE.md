@@ -9,6 +9,12 @@ After adding it, press **Set up** on its page once: it installs the driver PawnI
 bridge into a folder only admins can write to, and a task in Task Scheduler – Windows asks for admin rights once.
 The monitor itself runs without admin rights.
 
+## New in 1.0.3
+
+- **The power logs survive a power cut:** a log is only put in place once it is really on the disk, so there is
+  always a complete one. A log that still cannot be read is no longer overwritten – it is put aside as
+  `….broken-<time>.json` and `log.txt` says so.
+
 ## New in 1.0.2
 
 - **Nothing of the power logs is lost any more when Windows shuts down** (or on Quit): the monitor saves them

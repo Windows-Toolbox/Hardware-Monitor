@@ -39,7 +39,8 @@ What is yours lies in `dist\data\`: `settings.json` (settings, fan curves, the w
 *Export…* takes all of it along except the log. The power logs are of version 2 since 2026-11-24 (per hour also
 CPU + GPU); a log of version 1 is discarded at the next start. The logs are saved every 5 minutes, the last hour
 once a minute, and all three when the monitor ends – also when Windows shuts down; only a crash or a power cut
-loses the time since.
+loses the time since (the plug's counter brings back its energy). A file is put in place only once it is on the
+disk; one that cannot be read anyway is put aside as `<name>.broken-<time>.json`, never overwritten.
 
 ## Removing it
 
