@@ -1,4 +1,4 @@
-//! Power consumption: estimate, log, add up – ported from the Python monitor of version 2, in the same file format,
+//! Power consumption: estimate, log, add up – ported from the Python version, in the same file format,
 //! so its log went on.
 //!
 //! Most power supplies cannot report what they draw, so the PC's power at the wall socket is estimated:

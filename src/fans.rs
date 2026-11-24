@@ -1,5 +1,5 @@
 //! Fan control: curves (temperature → %) for the graphics card's fans and the motherboard's fan headers – like the
-//! fan curve in MSI Afterburner. Ported from the Python monitor of version 2, with the same rules and the same
+//! fan curve in MSI Afterburner. Ported from the Python version, with the same rules and the same
 //! settings (`fan_control`, now in `data\settings.json`), so its curves carried over.
 //!
 //! One item per graphics card (all its fans follow one curve) and one per motherboard fan header. Per item: mode

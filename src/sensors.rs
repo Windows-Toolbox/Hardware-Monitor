@@ -1,5 +1,5 @@
 //! What the bridge reads, and the choices made from it: which temperature goes into the taskbar, which sensor is
-//! the CPU's or the graphics card's power, which fans can be controlled. Ported from the Python monitor of version 2.
+//! the CPU's or the graphics card's power, which fans can be controlled. Ported from the Python version.
 
 use serde::{Deserialize, Serialize};
 

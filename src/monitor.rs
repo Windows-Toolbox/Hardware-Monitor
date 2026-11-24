@@ -29,7 +29,7 @@ const HEALTH_EVERY: Duration = Duration::from_secs(10);
 const RETRY: Duration = Duration::from_secs(10);
 /// While no plug was found: the next look.
 const LOOK_AGAIN: Duration = Duration::from_secs(60);
-/// CPU blue, GPU green – the stripes under the numbers in the taskbar, as the icons of version 2 had them.
+/// CPU blue, GPU green – the stripes under the numbers in the taskbar, as the Python version's icons had them.
 const STRIPE_CPU: u32 = 0x468cff;
 const STRIPE_GPU: u32 = 0x76b900;
 

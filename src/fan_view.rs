@@ -1,4 +1,4 @@
-//! The tab "Fans" of the detail window (as in version 2): the fans that can be controlled, and for the
+//! The tab "Fans" of the detail window (as in the Python version): the fans that can be controlled, and for the
 //! selected one its mode (Auto / Curve / Fixed), the source temperature and a curve editor like in MSI Afterburner.
 //!
 //! Curve editor: x = temperature 20–100 °C, y = fan speed 0–100 %. Drag a point to move it (it stays between its

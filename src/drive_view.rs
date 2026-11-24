@@ -1,4 +1,4 @@
-//! The tab "Drive health" of the detail window (as in version 2) – like CrystalDiskInfo: every drive
+//! The tab "Drive health" of the detail window (as in the Python version) – like CrystalDiskInfo: every drive
 //! with its health status (Good / Caution / Bad), temperature, remaining life and power-on hours; for the selected
 //! one the key data and the full SMART table with a coloured dot per attribute.
 //!

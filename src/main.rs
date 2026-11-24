@@ -40,7 +40,7 @@ use kit::{i18n, process, t};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
-/// Version 2 kept fan curves and the window's place in this file (the Python part's); taken over once.
+/// The Python version kept fan curves and the window's place in this file; taken over once.
 const OLD_FILE: &str = "hardware_monitor.json";
 /// A second click on "Delete" within this time deletes.
 const CONFIRM: Duration = Duration::from_secs(8);
@@ -127,7 +127,7 @@ fn read_json(file: &Path) -> Map<String, Value> {
     std::fs::read_to_string(file).ok().and_then(|s| serde_json::from_str(s.trim_start_matches('\u{feff}')).ok()).unwrap_or_default()
 }
 
-/// Version 2's `data\hardware_monitor.json`: its fan curves and the window's place come into the settings. The file
+/// The Python version's `data\hardware_monitor.json`: its fan curves and the window's place come into the settings. The file
 /// goes once the settings with them are saved – at the next start.
 fn take_over_old_file(rt: &Runtime<Monitor>) {
     let old = app::data_dir().join(OLD_FILE);
@@ -705,9 +705,9 @@ mod tests {
         kit::i18n::check_ids(env!("CARGO_MANIFEST_DIR")).unwrap();
     }
 
-    /// A settings file of version 2 (without fan curves and window) still reads.
+    /// A settings file of the Python version's time (without fan curves and window) still reads.
     #[test]
-    fn version_2_settings_read() {
+    fn python_version_settings_read() {
         let old = r#"{"icon_interval": 5.0, "privacy_mode": true, "rust_version": true, "_toolbox": {"language": "de"}}"#;
         let s: Settings = serde_json::from_str(old).unwrap();
         assert_eq!((s.icon_interval, s.privacy_mode, s.fan_control.len(), s.window.as_str()), (5.0, true, 0, ""));

@@ -93,7 +93,7 @@ into a signed zip and publishes it as a GitHub release (the version from `Cargo.
 
 ✓ checked, ◐ built, not checked by hand yet.
 
-- ✓ Tests: page keys, texts, settings of version 2, the bars of the power chart, fan curves, the plug's log, drive
+- ✓ Tests: page keys, texts, settings of the Python version's time, the bars of the power chart, fan curves, the plug's log, drive
   health rules, hardware data from the bridge's rows, the window's content file
 - ✓ Set up / Test / Uninstall (2026-11-24): one admin prompt, the bridge reads with admin rights, Clean up leaves it
   alone, Uninstall removes task and folder
@@ -101,7 +101,8 @@ into a signed zip and publishes it as a GitHub release (the version from `Cargo.
   efficiency mode, the smart plug
 - ✓ The detail window (2026-11-24): list tabs (select, copy, fold), privacy mode, size and place kept; Power (views,
   tiles, hover, Copy table), Fans (curve editor on real fans), Drive health, Hardware data (Overview / Details, Copy)
-- ◐ Version 3.0.0: fan curves and the window's place taken over from version 2's `hardware_monitor.json`
+- ✓ Fan curves and the window's place taken over from the Python version's `hardware_monitor.json` (2026-11-24,
+  on the developer PC; the old file went at the next start)
 - ◐ A fresh PC from the release zip alone
 
 ## Later

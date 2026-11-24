@@ -1,4 +1,4 @@
-//! The fixed data of the hardware for the window's tab "Hardware data" (as in version 2):
+//! The fixed data of the hardware for the window's tab "Hardware data" (as in the Python version):
 //! manufacturer, model, vendor and product IDs, serial numbers, drivers. Read once when the tab is first shown, not
 //! measured – by `LhmBridge.exe --hardware-data` (WMI and DXCore, no admin rights), which hands over the rows as
 //! they are; what they mean is worked out here.
