@@ -28,6 +28,7 @@ mod power_view;
 mod sensors;
 mod window;
 
+use std::collections::BTreeMap;
 use std::path::Path;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -75,6 +76,8 @@ pub struct Settings {
     pub energy_currency: String,
     pub energy_other_watts: u32,
     pub energy_psu_efficiency: u32,
+    /// The Power tab's chart: "bars" or "line" (separate lines for the total, CPU + GPU and the rest).
+    pub power_chart: String,
     /// The two temperatures as numbers next to the Toolbox's icon (DESIGN.md 6) – off by default.
     pub taskbar_temps: bool,
     /// Read a smart plug's measured power.
@@ -85,6 +88,10 @@ pub struct Settings {
     pub plug_name: String,
     /// Each fan's settings (`fans.rs`): set in the detail window's tab "Fans".
     pub fan_control: Map<String, Value>,
+    /// Names given to the motherboard's fan headers there (control id → name) – LHM only knows "Fan #2".
+    pub fan_names: BTreeMap<String, String>,
+    /// The headers marked as CPU fans there – listed under "CPU".
+    pub cpu_fans: Vec<String>,
     /// The detail window's size and place: "WxH+X+Y" in pixels, or "".
     pub window: String,
 }
@@ -108,11 +115,14 @@ impl Default for Settings {
             energy_currency: "€".into(),
             energy_other_watts: 40,
             energy_psu_efficiency: 87,
+            power_chart: "bars".into(),
             taskbar_temps: false,
             plug: false,
             plug_address: String::new(),
             plug_name: String::new(),
             fan_control: Map::new(),
+            fan_names: BTreeMap::new(),
+            cpu_fans: vec![],
             window: String::new(),
         }
     }
@@ -238,6 +248,8 @@ struct Monitor {
     bridge: BridgeView,
     /// Each controllable fan and what the control does with it.
     fan_info: Vec<(String, fans::State)>,
+    /// Fans the window asked to boost ("Boost") – the monitor takes them at its next round.
+    fan_boosts: Vec<String>,
     /// "Delete all saved data" while the monitor runs – it holds the logs and deletes them.
     energy_delete_asked: bool,
     /// The detail window's connection, while one is open (`link.rs`).
@@ -258,6 +270,7 @@ impl Monitor {
             delete_asked: None,
             bridge: BridgeView::default(),
             fan_info: vec![],
+            fan_boosts: vec![],
             energy_delete_asked: false,
             window: None,
             window_want: link::Want::default(),
@@ -343,6 +356,10 @@ impl Program for Monitor {
                 }
                 for (name, state) in &self.fan_info {
                     let text = match (state.software, state.pct, state.note.as_deref()) {
+                        (true, _, Some("boost")) => {
+                            p.status(t!("page.fan.boost", name = name), Health::Ok);
+                            continue;
+                        }
                         (true, Some(pct), Some("hot")) => t!("page.fan.hot", name = name, pct = pct),
                         (true, Some(pct), _) => t!("page.fan.controlled", name = name, pct = pct),
                         (_, _, Some("no_temperature")) => t!("page.fan.no_temperature", name = name),
@@ -413,6 +430,7 @@ impl Program for Monitor {
             p.entry(t!("page.power.currency"), "energy_currency");
             p.slider(t!("page.power.other"), "energy_other_watts", 0.0, 300.0, 5.0, "W");
             p.slider(t!("page.power.efficiency"), "energy_psu_efficiency", 50.0, 100.0, 1.0, "%");
+            p.choice(t!("page.power.chart"), "power_chart", &[("bars", t!("page.power.chart.bars")), ("line", t!("page.power.chart.line"))]);
             p.text(t!("page.power.calibrate"));
             let asked = self.delete_asked.is_some_and(|t| t.elapsed() < CONFIRM);
             if asked {
@@ -628,6 +646,24 @@ fn window_said(rt: &Runtime<Monitor>, msg: link::ToMonitor) {
         link::ToMonitor::Fan { id, config } => rt.update(|s| {
             s.fan_control.insert(id, config);
         }),
+        link::ToMonitor::FanName { id, name } => rt.update(|s| {
+            let name: String = name.trim().chars().take(40).collect();
+            if name.is_empty() {
+                s.fan_names.remove(&id);
+            } else {
+                s.fan_names.insert(id, name);
+            }
+        }),
+        link::ToMonitor::CpuFan { id, on } => rt.update(|s| {
+            s.cpu_fans.retain(|f| *f != id);
+            if on {
+                s.cpu_fans.push(id);
+            }
+        }),
+        link::ToMonitor::Boost { id } => {
+            rt.with(|p, _| p.fan_boosts.push(id));
+            rt.nudge();
+        }
         link::ToMonitor::Geometry { value } => rt.update(|s| s.window = value),
     }
 }

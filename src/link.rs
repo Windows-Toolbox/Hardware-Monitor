@@ -6,7 +6,6 @@
 //! says what it shows (`Want`) – the monitor then reads that each round and sends a `State`. Without a window the
 //! monitor reads only what the taskbar needs.
 
-use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -51,6 +50,12 @@ pub enum ToMonitor {
     Want(Want),
     /// One fan's settings changed in the curve editor (`fan_control` in the monitor's file).
     Fan { id: String, config: Value },
+    /// A motherboard header's name ("" = LHM's again).
+    FanName { id: String, name: String },
+    /// A motherboard header marked as CPU fan, or not any more.
+    CpuFan { id: String, on: bool },
+    /// "Boost": this fan at 100 % for `fans::BOOST`, then as set again.
+    Boost { id: String },
     /// The privacy switch in the window's header: on or off (not "toggle" – two quick clicks stay right).
     Privacy { on: bool },
     /// Size and position when the window closes: "WxH+X+Y" in pixels (the format of the Python version).
@@ -86,6 +91,9 @@ pub struct Settings {
     pub energy_price: f64,
     pub energy_currency: String,
     pub plug: bool,
+    /// The Power tab's chart: "bars" or "line".
+    #[serde(default)]
+    pub power_chart: String,
 }
 
 /// One controllable fan and what the control does with it.
@@ -101,6 +109,12 @@ pub struct Fan {
     pub software: bool,
     pub pct: Option<f64>,
     pub note: Option<String>,
+    /// The name given to it in the tab "Fans" ("" = none; `name` is LHM's).
+    #[serde(default)]
+    pub label: String,
+    /// Marked as CPU fan.
+    #[serde(default)]
+    pub cpu: bool,
     /// Its entry of `fan_control` (missing = the defaults).
     pub config: Option<Value>,
 }
@@ -133,8 +147,13 @@ pub struct State {
     pub present: Option<Vec<String>>,
     pub power: Power,
     /// The logs, for the chart – only while it is shown.
-    pub hours: Option<BTreeMap<String, [f64; 2]>>,
-    pub plug_hours: Option<BTreeMap<String, [f64; 2]>>,
+    pub hours: Option<crate::energy::Hours>,
+    pub plug_hours: Option<crate::energy::Hours>,
+    /// The last hour per minute (`energy::MinuteLog`) – only while the Power tab is shown.
+    #[serde(default)]
+    pub minutes: Option<crate::energy::Hours>,
+    #[serde(default)]
+    pub plug_minutes: Option<crate::energy::Hours>,
     pub fans: Vec<Fan>,
     /// The last drive health reading (the bridge's `drives` answer) – only while that tab is shown.
     pub drives: Option<Value>,

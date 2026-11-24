@@ -25,6 +25,8 @@ const HYSTERESIS: f64 = 3.0;
 /// Set the speed again anyway – after sleep the driver may have taken over again.
 const REAPPLY: Duration = Duration::from_secs(30);
 pub const MAX_POINTS: usize = 8;
+/// "Boost": a fan at 100 % this long – to hear which one it is.
+pub const BOOST: Duration = Duration::from_secs(5);
 
 /// A fan (or all fans of a graphics card) that can be controlled.
 #[derive(Debug, Clone, PartialEq)]
@@ -115,7 +117,7 @@ pub struct State {
     /// The temperature at which `pct` was chosen – the reference of the hysteresis.
     temp: Option<f64>,
     time: Option<Instant>,
-    /// "hot", "no_temperature", "error".
+    /// "hot", "no_temperature", "error", "boost".
     pub note: Option<String>,
 }
 
@@ -132,12 +134,21 @@ pub type Hot = (f64, f64);
 pub struct Controller {
     pub items: Vec<FanItem>,
     pub state: HashMap<String, State>,
+    /// Boosted fans: until when.
+    boosts: HashMap<String, Instant>,
 }
 
 impl Controller {
     /// Whether any fan should be controlled (or still is) – then the monitor adjusts every INTERVAL.
     pub fn wanted(&self, config: &Map<String, Value>) -> bool {
-        self.state.values().any(|s| s.software) || self.items.iter().any(|i| Config::from_settings(&i.kind, config.get(&i.id)).mode != "auto")
+        !self.boosts.is_empty() || self.state.values().any(|s| s.software) || self.items.iter().any(|i| Config::from_settings(&i.kind, config.get(&i.id)).mode != "auto")
+    }
+
+    /// "Boost": the fan at 100 % until `now + BOOST`, then as set again – Auto hands it back.
+    pub fn boost(&mut self, id: &str, now: Instant) {
+        if self.items.iter().any(|i| i.id == id) {
+            self.boosts.insert(id.to_string(), now + BOOST);
+        }
     }
 
     /// Adjusts all fans. `temps`: (cpu, gpu) – `None` = unknown.
@@ -145,6 +156,31 @@ impl Controller {
         for item in self.items.clone() {
             let c = Config::from_settings(&item.kind, config.get(&item.id));
             let state = self.state.entry(item.id.clone()).or_default();
+            let boosted = self.boosts.get(&item.id).is_some_and(|until| now < *until);
+            if boosted {
+                if !state.software || state.note.as_deref() != Some("boost") {
+                    let pct = 100f64.clamp(item.minimum, item.maximum.max(item.minimum));
+                    match fans.set(&item.control_ids, pct) {
+                        Ok(()) => {
+                            kit::app::log(&format!("fan control: {} boosted ({pct} %)", item.name));
+                            *state = State { software: true, pct: Some(pct), temp: None, time: Some(now), note: Some("boost".into()) };
+                        }
+                        Err(e) => {
+                            kit::app::log(&format!("fan {} could not be boosted: {e}", item.name));
+                            self.boosts.remove(&item.id);
+                            release(fans, &item, state);
+                            state.note = Some("error".into());
+                        }
+                    }
+                }
+                continue;
+            }
+            if self.boosts.remove(&item.id).is_some() {
+                // Over: as set again – from scratch, so the hysteresis does not keep it at 100 %.
+                state.pct = None;
+                state.temp = None;
+                state.note = None;
+            }
             if c.mode == "auto" {
                 if state.software {
                     release(fans, &item, state);
@@ -304,6 +340,35 @@ mod tests {
         // Back to auto: nothing more to do.
         c.apply(&mut fake, &config(json!({"mode": "auto"})), (None, Some(60.0)), hot, t0 + INTERVAL * 5);
         assert!(!c.wanted(&config(json!({"mode": "auto"}))));
+    }
+
+    #[test]
+    fn boost_and_back() {
+        let mut c = Controller { items: vec![gpu()], ..Default::default() };
+        let mut fake = Fake::default();
+        let t0 = Instant::now();
+        let hot = (90.0, 83.0);
+        // Auto: boosted, then handed back.
+        let auto = config(json!({"mode": "auto"}));
+        assert!(!c.wanted(&auto));
+        c.boost("/gpu-nvidia/0", t0);
+        c.boost("nothing", t0);
+        assert!(c.wanted(&auto));
+        c.apply(&mut fake, &auto, (None, Some(50.0)), hot, t0);
+        assert_eq!((fake.set.last().unwrap().1, c.state["/gpu-nvidia/0"].note.as_deref()), (100.0, Some("boost")));
+        c.apply(&mut fake, &auto, (None, Some(50.0)), hot, t0 + INTERVAL);
+        assert_eq!(fake.set.len(), 1, "set once");
+        c.apply(&mut fake, &auto, (None, Some(50.0)), hot, t0 + BOOST);
+        assert_eq!(fake.released.len(), 1, "back to the card");
+        assert!(!c.wanted(&auto));
+        // A curve: back on the curve at once, not held at 100 % by the hysteresis.
+        let curve = config(json!({"mode": "curve", "source": "gpu", "curve": [[40, 30], [80, 70]]}));
+        c.apply(&mut fake, &curve, (None, Some(60.0)), hot, t0);
+        c.boost("/gpu-nvidia/0", t0);
+        c.apply(&mut fake, &curve, (None, Some(60.0)), hot, t0 + INTERVAL);
+        assert_eq!(fake.set.last().unwrap().1, 100.0);
+        c.apply(&mut fake, &curve, (None, Some(60.0)), hot, t0 + BOOST + INTERVAL);
+        assert_eq!((fake.set.last().unwrap().1, c.state["/gpu-nvidia/0"].note.as_deref()), (50.0, None));
     }
 
     #[test]

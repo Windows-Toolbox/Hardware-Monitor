@@ -15,7 +15,7 @@ use kit::t;
 use serde_json::{Map, Value, json};
 
 use crate::bridge::{self, Bridge};
-use crate::energy::{self, EnergyLog, PlugLog};
+use crate::energy::{self, EnergyLog, MinuteLog, PlugLog};
 use crate::fans::{self, Controller, Fans};
 use crate::link::{self, ToWindow};
 use crate::nvml::Nvml;
@@ -170,6 +170,7 @@ fn session(rt: &Runtime<Monitor>, b: &Bridge) -> Result<(), String> {
     let nvml = Nvml::open();
     let mut energy = EnergyLog::load(app::data_dir().join(ENERGY_FILE));
     let mut plug_log = PlugLog::load(app::data_dir().join(PLUG_FILE));
+    let mut minutes = MinuteLog::default();
     let mut plug = PlugState::new();
     let mut controller = Controller::default();
     let (mut later, mut complete, mut battery) = (false, false, false);
@@ -182,6 +183,9 @@ fn session(rt: &Runtime<Monitor>, b: &Bridge) -> Result<(), String> {
             break Ok(());
         }
         crate::do_orders(rt);
+        for id in rt.with(|p, _| std::mem::take(&mut p.fan_boosts)) {
+            controller.boost(&id, Instant::now());
+        }
         let s = rt.with(|_, s| s.clone());
         let fan_config: &Map<String, Value> = &s.fan_control;
         let on = s.efficiency_mode != "off";
@@ -236,7 +240,7 @@ fn session(rt: &Runtime<Monitor>, b: &Bridge) -> Result<(), String> {
         let gpu_power = if gpu_by_nvml { nvml.as_ref().and_then(Nvml::power) } else { reading.gpu_power() };
         let estimate = reading.battery_power().unwrap_or_else(|| energy::wall_watts(reading.cpu_power(), gpu_power, s.energy_other_watts as f64, s.energy_psu_efficiency as f64));
         if s.energy_logging {
-            energy.add(estimate, now, at);
+            energy.add(estimate, reading.cpu_power().unwrap_or(0.0) + gpu_power.unwrap_or(0.0), now, at);
         } else {
             energy.pause();
         }
@@ -244,14 +248,20 @@ fn session(rt: &Runtime<Monitor>, b: &Bridge) -> Result<(), String> {
         if let (Some(v), true) = (&values, s.energy_logging) {
             plug_log.add(v.kwh, at);
         }
+        if s.energy_logging {
+            minutes.add(estimate, reading.cpu_power().unwrap_or(0.0) + gpu_power.unwrap_or(0.0), plug_view.watts, now, at);
+        } else {
+            minutes.pause();
+        }
 
         if controller.wanted(fan_config) {
             let hot = (s.cpu_hot_temp as f64, s.gpu_hot_temp as f64);
             controller.apply(&mut Through(b), fan_config, (cpu, gpu), hot, now);
         }
 
-        let summary = summary(&s, estimate, plug_view.watts, &energy, &plug_log);
-        let fan_info = controller.items.iter().map(|i| (i.name.clone(), controller.state.get(&i.id).cloned().unwrap_or_default())).collect();
+        let cpu_gpu = reading.cpu_power().unwrap_or(0.0) + gpu_power.unwrap_or(0.0);
+        let summary = summary(&s, estimate, cpu_gpu, plug_view.watts, &energy, &plug_log);
+        let fan_info = controller.items.iter().map(|i| (s.fan_names.get(&i.id).cloned().unwrap_or_else(|| i.name.clone()), controller.state.get(&i.id).cloned().unwrap_or_default())).collect();
         rt.with(|p, _| p.fan_info = fan_info);
         let plug_name = if s.plug_name.trim().is_empty() { plug.name.clone() } else { s.plug_name.trim().to_string() };
         let plug_watts = plug_view.watts;
@@ -281,6 +291,7 @@ fn session(rt: &Runtime<Monitor>, b: &Bridge) -> Result<(), String> {
                 energy_price: price,
                 energy_currency: s.energy_currency.trim().to_string(),
                 plug: s.plug,
+                power_chart: s.power_chart.clone(),
             };
             let temps = s.icon_order.iter().filter(|k| *k == "cpu" || has_gpu).map(|k| (k.clone(), if k == "cpu" { cpu } else { gpu })).collect();
             let fans = controller
@@ -299,6 +310,8 @@ fn session(rt: &Runtime<Monitor>, b: &Bridge) -> Result<(), String> {
                         software: state.software,
                         pct: state.pct,
                         note: state.note,
+                        label: s.fan_names.get(&i.id).cloned().unwrap_or_default(),
+                        cpu: i.kind == "case" && s.cpu_fans.contains(&i.id),
                         config: fan_config.get(&i.id).cloned(),
                     }
                 })
@@ -314,6 +327,8 @@ fn session(rt: &Runtime<Monitor>, b: &Bridge) -> Result<(), String> {
                 power: link::Power { estimate, cpu: reading.cpu_power(), gpu: gpu_power, battery: reading.battery_power(), plug: plug_watts, plug_name },
                 hours: power_view.then(|| energy.hours.clone()),
                 plug_hours: power_view.then(|| plug_log.hours.clone()),
+                minutes: power_view.then(|| minutes.estimate.clone()),
+                plug_minutes: power_view.then(|| minutes.plug.clone()),
                 fans,
                 drives: (want.view == "health").then(|| drives.clone()).flatten(),
             };
@@ -372,18 +387,17 @@ fn running_report(s: &Settings, cpu: Option<f64>, gpu: Option<Option<f64>>, summ
 
 /// The power line on the page: now, today, this month, in total. With a plug its measured values (the whole desk),
 /// beside the PC's estimate.
-fn summary(s: &Settings, estimate: f64, plug: Option<f64>, energy: &EnergyLog, plug_log: &PlugLog) -> String {
+fn summary(s: &Settings, estimate: f64, cpu_gpu: f64, plug: Option<f64>, energy: &EnergyLog, plug_log: &PlugLog) -> String {
     let mut parts = vec![];
     match plug {
         Some(desk) => {
             parts.push(t!("page.power.desk_now", watts = energy::num(desk, 0)));
-            parts.push(t!("page.power.pc_now", watts = energy::num(estimate, 0)));
-            parts.push(t!("page.power.others", watts = energy::num((desk - estimate).max(0.0), 0)));
+            parts.push(t!("page.power.cpu_gpu_now", watts = energy::num(cpu_gpu.min(desk), 0)));
+            parts.push(t!("page.power.rest_now", watts = energy::num((desk - cpu_gpu).max(0.0), 0)));
         }
         None => parts.push(t!("page.power.now", watts = energy::num(estimate, 0))),
     }
-    let hours = if s.plug && !plug_log.hours.is_empty() { &plug_log.hours } else { &energy.hours };
-    let totals = energy::totals(hours, &energy::today());
+    let totals = energy::totals_of(&energy.hours, s.plug.then_some(&plug_log.hours), &energy::today());
     let price = crate::parse_price(&s.energy_price).unwrap_or(0.0);
     let cost = |wh: f64| format!("{} {}", energy::num(wh / 1000.0 * price, 2), s.energy_currency.trim()).trim().to_string();
     for (id, wh) in [("page.power.today", totals.today), ("page.power.month", totals.month), ("page.power.all", totals.all)] {

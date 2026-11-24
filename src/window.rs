@@ -104,7 +104,7 @@ pub fn run(tab: Option<String>) {
         &title,
         options,
         Box::new(move |cc| {
-            ui::theme(&cc.egui_ctx, if settings.theme.is_empty() { "dark" } else { &settings.theme }, if settings.zoom > 0.0 { settings.zoom } else { 1.0 });
+            ui::theme_with(&cc.egui_ctx, if settings.theme.is_empty() { "dark" } else { &settings.theme }, if settings.zoom > 0.0 { settings.zoom } else { 1.0 }, ui::Density::Compact);
             *reader_ctx.lock().unwrap_or_else(|e| e.into_inner()) = Some(cc.egui_ctx.clone());
             Ok(Box::new(app))
         }),
@@ -178,7 +178,7 @@ const PRIVACY_WAIT: Duration = Duration::from_secs(3);
 pub struct ViewOut {
     pub footer: Option<String>,
     pub copy: Option<(String, String)>,
-    pub send: Option<ToMonitor>,
+    pub send: Vec<ToMonitor>,
 }
 
 /// A short message in the footer.
@@ -419,26 +419,26 @@ impl eframe::App for App {
                     }
                 },
             );
-            ui.add_space(4.0);
-            ui.horizontal_wrapped(|ui| {
-                ui.spacing_mut().item_spacing.x = 4.0;
-                for &i in &visible {
-                    let chosen = i == self.tab;
-                    if ui.add(egui::Button::new(content::label(&self.content.tabs[i].title)).selected(chosen)).clicked() && !chosen {
-                        self.tab = i;
-                        self.selected.clear();
-                        self.anchor = None;
-                    }
-                }
-            });
-            ui.add_space(4.0);
+            ui.add_space(2.0);
+            let labels: Vec<String> = visible.iter().map(|&i| content::label(&self.content.tabs[i].title)).collect();
+            let chosen = visible.iter().position(|&i| i == self.tab).unwrap_or(usize::MAX);
+            if let Some(k) = ui::tab_bar(ui, &labels, chosen) {
+                self.tab = visible[k];
+                self.selected.clear();
+                self.anchor = None;
+            }
         });
 
         // The footer: what the last frame found under the mouse (egui draws again whenever the mouse moves).
         let (text, color) = self.footer.clone();
         egui::Panel::bottom("footer").show(ui, |ui| {
             ui.add_space(4.0);
-            ui.add(egui::Label::new(RichText::new(text).size(12.0).color(color)).wrap());
+            // Always room for two lines – a text of one line or two does not make the window below jump.
+            let line = ui.painter().layout_no_wrap("Ag".into(), FontId::proportional(12.0), color).size().y;
+            ui.vertical(|ui| {
+                ui.set_min_height(2.0 * line);
+                ui.add(egui::Label::new(RichText::new(text).size(12.0).color(color)).wrap());
+            });
             ui.add_space(4.0);
         });
         let mut hover: Option<Hover> = None;
@@ -446,7 +446,7 @@ impl eframe::App for App {
         egui::CentralPanel::default().show(ui, |ui| match tab.as_ref().and_then(|t| t.view.clone()).as_deref() {
             None | Some("all") => {
                 if let Some(tab) = &tab {
-                    let rows = if answered { content::rows(tab, state.hardware.as_deref().unwrap_or_default()) } else { vec![] };
+                    let rows = if answered { with_fan_names(content::rows(tab, state.hardware.as_deref().unwrap_or_default()), &state.fans) } else { vec![] };
                     let empty = if answered { t!("window.no_sensors") } else { t!("window.loading_sensors") };
                     hover = self.list(ui, &ctx, rows, empty, &state.settings);
                 }
@@ -457,8 +457,8 @@ impl eframe::App for App {
             Some("hardware_data") => hover = self.hardware_tab(ui, &ctx, &state, &mut out),
             Some(_) => {}
         });
-        if let Some(msg) = out.send {
-            self.send(&msg);
+        for msg in &out.send {
+            self.send(msg);
         }
         if let Some((text, message)) = out.copy {
             self.copy(&ctx, text, message);
@@ -944,4 +944,16 @@ impl App {
         let message = if rows.len() == 1 { t!("window.one_row_copied") } else { t!("window.rows_copied", n = rows.len()) };
         self.copy(ctx, text, message);
     }
+}
+
+/// The names given in the tab "Fans" stand before LHM's: "CPU cooler (Fan #2)".
+fn with_fan_names(mut rows: Vec<Row>, fans: &[link::Fan]) -> Vec<Row> {
+    for row in &mut rows {
+        if let RowKind::Value { sensor, .. } = &row.kind
+            && let Some(f) = fans.iter().find(|f| f.kind == "case" && !f.label.trim().is_empty() && (f.fan_ids.contains(&sensor.id) || f.control_ids.contains(&sensor.id)))
+        {
+            row.text = format!("{} ({})", f.label.trim(), row.text);
+        }
+    }
+    rows
 }

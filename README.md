@@ -35,7 +35,8 @@ shows is set in `detail_window.json` – its `help` at the top explains the form
 
 What is yours lies in `dist\data\`: `settings.json` (settings, fan curves, the window's place),
 `hardware_monitor_energy.json` and `hardware_monitor_plug.json` (the power logs) and `log.txt`. The Toolbox's
-*Export…* takes all of it along except the log.
+*Export…* takes all of it along except the log. The power logs are of version 2 since 2026-11-24 (per hour also
+CPU + GPU); a log of version 1 is discarded at the next start.
 
 ## Removing it
 
@@ -103,11 +104,24 @@ into a signed zip and publishes it as a GitHub release (the version from `Cargo.
   tiles, hover, Copy table), Fans (curve editor on real fans), Drive health, Hardware data (Overview / Details, Copy)
 - ✓ Fan curves and the window's place taken over from the Python version's `hardware_monitor.json` (2026-11-24,
   on the developer PC; the old file went at the next start)
+- ◐ Fans tab with groups (2026-11-24, seen in screenshots with the real fans, not clicked by hand): the switch
+  Graphics card | Motherboard | CPU, fan channels with their hover text, headers that do not turn folded away, names
+  and "CPU fan" for headers (`fan_names`, `cpu_fans` in `settings.json`; the names also stand in the list tabs),
+  several fans edited together (Ctrl / Shift+click, "select all"), "Boost" (5 s at 100 %, the monitor ends it)
+- ◐ The detail window in the compact look of the kit (2026-11-24, seen in screenshots): smaller text, tabs as text
+  with an underline, the fan groups as one switch, column headings in small capitals
+- ◐ Power tab, new (2026-11-24, seen in screenshots against a stand-in monitor with the old logs): stacked bars
+  (CPU + GPU measured, everything else at the plug, the rest of the PC estimated where the plug did not measure),
+  the running bar with "expected" dashed, the average line, kWh | money, the line of the last 2 minutes, the month's
+  forecast; the setting "Chart" bars | lines on the page; logs of version 2 (old ones discarded); the view
+  "60 minutes" per minute in W (the monitor keeps the last hour in memory only); with lines, the running period's
+  point stands where it is expected to end (dashed) – too early in it, it is left out, so a new hour does not pull
+  the lines down
 - ◐ A fresh PC from the release zip alone
 
 ## Later
 
-- **Fans tab** (agreed with the user 2026-11-24, next after 1.0.0): a switch Graphics card | Motherboard | CPU at
-  the top. The motherboard's headers can be renamed (LHM only knows "Fan #1 … #7") and marked as CPU fans – those
-  are listed under "CPU". The graphics card shows its fan *channels* ("Fan channel 1 / 2") with a hover text: the
-  driver reports channels, not fans (the RTX 4060 Ti here has 3 fans on 2 channels – `nvmlDeviceGetNumFans` says 2).
+- **A better "expected" for the day and the month** (idea of the user, 2026-11-24): today the running day is
+  expected to reach the average of the finished days, the month its pace so far. Better: a small method that looks
+  at how the days went before – weekdays against weekends, what a morning or an evening usually uses – and expects
+  the rest of the day or the month's remaining days from that.

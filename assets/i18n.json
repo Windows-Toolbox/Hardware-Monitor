@@ -167,6 +167,18 @@
     "de": "Wirkungsgrad des Netzteils",
     "en": "Power supply efficiency"
   },
+  "page.power.chart": {
+    "de": "Diagramm im Detailfenster",
+    "en": "Chart in the detail window"
+  },
+  "page.power.chart.bars": {
+    "de": "Balken",
+    "en": "Bars"
+  },
+  "page.power.chart.line": {
+    "de": "Linien",
+    "en": "Lines"
+  },
   "page.power.calibrate": {
     "de": "Übrige Komponenten: etwa 30–60 W bei einem Desktop-PC. Wirkungsgrad: Netzteile mit 80 PLUS Bronze/Gold schaffen etwa 85–90 %. Mit einem Strommessgerät an der Steckdose: mit „Jetzt“ im Detailfenster vergleichen und „Übrige Komponenten“ anpassen, bis beide passen.",
     "en": "Other components: about 30–60 W for a desktop PC. Efficiency: 80 PLUS Bronze/Gold power supplies reach about 85–90 %. With an energy meter at the socket: compare it with \"Now\" in the detail window and adjust \"Other components\" until both match."
@@ -335,6 +347,10 @@
     "de": "Lüfter {name}: ließ sich nicht setzen – zurück an die Automatik",
     "en": "Fan {name}: could not be set – handed back to automatic"
   },
+  "page.fan.boost": {
+    "de": "Lüfter {name}: kurz aufgedreht (100 %)",
+    "en": "Fan {name}: boosted (100 %)"
+  },
   "page.taskbar": {
     "de": "Taskleiste",
     "en": "Taskbar"
@@ -411,13 +427,13 @@
     "de": "Steckdose jetzt {watts} W (gemessen)",
     "en": "plug now {watts} W (measured)"
   },
-  "page.power.pc_now": {
-    "de": "davon PC ≈ {watts} W (geschätzt)",
-    "en": "of it the PC ≈ {watts} W (estimated)"
+  "page.power.cpu_gpu_now": {
+    "de": "davon CPU + Grafikkarte {watts} W (gemessen)",
+    "en": "of it CPU + graphics card {watts} W (measured)"
   },
-  "page.power.others": {
-    "de": "übrige Geräte ≈ {watts} W",
-    "en": "other devices ≈ {watts} W"
+  "page.power.rest_now": {
+    "de": "alles andere {watts} W",
+    "en": "everything else {watts} W"
   },
   "page.power.today": {
     "de": "heute {energy} ({cost})",
@@ -623,6 +639,10 @@
     "de": "Alles",
     "en": "All"
   },
+  "power.view.hour": {
+    "de": "60 Minuten",
+    "en": "60 minutes"
+  },
   "power.view.day": {
     "de": "24 Stunden",
     "en": "24 hours"
@@ -644,8 +664,8 @@
     "en": "Copies the bars of the chart as a table (period, kWh, cost, measured time) – tab-separated, e.g. for Excel."
   },
   "power.hint": {
-    "de": "Mit der Maus über einen Balken: seine Werte. Geschätzt: CPU und Grafikkarte werden gemessen, der Rest des PCs ist ein fester Wert (Einstellungen auf der Toolbox-Seite, ⚙).",
-    "en": "Hover over a bar for its values. Estimated: CPU and graphics card are measured, the rest of the PC is a fixed value (settings on the Toolbox page, ⚙)."
+    "de": "Mit der Maus über einen Balken: seine Werte. CPU und Grafikkarte werden gemessen, der übrige PC ist geschätzt (Einstellungen auf der Toolbox-Seite, ⚙).",
+    "en": "Hover over a bar for its values. CPU and graphics card are measured, the rest of the PC is estimated (settings on the Toolbox page, ⚙)."
   },
   "power.tile.now": {
     "de": "Jetzt",
@@ -684,8 +704,16 @@
     "en": "Logging is on – the first values appear in the chart within a few seconds."
   },
   "power.note.on": {
-    "de": "Mitgeschrieben seit {since}, solange der Hardware Monitor läuft (geschätzt – die Toolbox-Seite erklärt, wie).",
-    "en": "Logged since {since} while the Hardware Monitor runs (estimated – the Toolbox page explains how)."
+    "de": "Mitgeschrieben seit {since}, solange der Hardware Monitor läuft: CPU und Grafikkarte gemessen, der übrige PC geschätzt (die Toolbox-Seite erklärt, wie).",
+    "en": "Logged since {since} while the Hardware Monitor runs: CPU and graphics card measured, the rest of the PC estimated (the Toolbox page explains how)."
+  },
+  "power.note.minutes": {
+    "de": "Die letzten 60 Minuten hält der Hardware Monitor nur im Speicher: nach seinem Start füllt sich diese Ansicht neu.",
+    "en": "The Hardware Monitor keeps the last 60 minutes in memory only: after it starts, this view fills anew."
+  },
+  "power.chart.hour": {
+    "de": "Leistung pro Minute – letzte 60 Minuten",
+    "en": "Power per minute – last 60 minutes"
   },
   "power.chart.day": {
     "de": "Energie pro Stunde – letzte 24 Stunden",
@@ -720,8 +748,8 @@
     "en": "How long Windows has been running – the same as \"Up time\" in Task Manager. With Fast Startup a normal shutdown doesn't reset it, only a restart does."
   },
   "power.bar": {
-    "de": "{period}: {energy} · {cost} · gemessen {measured}",
-    "en": "{period}: {energy} · {cost} · measured {measured}"
+    "de": "{period}: {energy} · {cost} – {parts} · gemessen {measured}",
+    "en": "{period}: {energy} · {cost} – {parts} · measured {measured}"
   },
   "power.bar.empty": {
     "de": "{period}: nichts mitgeschrieben (PC aus, Hardware Monitor lief nicht oder Mitschreiben aus)",
@@ -743,37 +771,117 @@
     "de": "{n} Zeilen als Tabelle kopiert",
     "en": "Copied {n} rows as a table"
   },
-  "power.source.plug": {
-    "de": "Steckdose",
-    "en": "Plug"
+  "power.unit.help": {
+    "de": "Was die Achse des Diagramms zählt: Energie oder was sie zum Preis aus den Einstellungen kostet.",
+    "en": "What the chart's axis counts: energy, or what it costs at the price from the settings."
   },
-  "power.source.pc": {
-    "de": "PC",
-    "en": "PC"
+  "power.now.cpu_gpu_sub": {
+    "de": "CPU + GPU {cpu_gpu} · Rest {rest}",
+    "en": "CPU + GPU {cpu_gpu} · rest {rest}"
   },
-  "power.source.help": {
-    "de": "Steckdose: von der smarten Steckdose gemessen – alles, was an ihr hängt, z. B. der ganze Schreibtisch. PC: geschätzt – CPU und Grafikkarte werden gemessen, der Rest des PCs ist ein fester Wert.",
-    "en": "Plug: measured by the smart plug – everything on it, e.g. the whole desk. PC: estimated – CPU and graphics card are measured, the rest of the PC is a fixed value."
+  "power.help.spark": {
+    "de": "Die Linie: die letzten 2 Minuten.",
+    "en": "The line: the last 2 minutes."
+  },
+  "power.forecast": {
+    "de": "Hochgerechnet ≈ {energy} · {cost}",
+    "en": "At this pace ≈ {energy} · {cost}"
+  },
+  "power.help.forecast": {
+    "de": "Hochgerechnet: der Durchschnitt pro Tag seit dem ersten Tag mit Werten in diesem Monat, mal die Tage des Monats – grob, aber früh im Monat schon ein Gefühl für die Rechnung.",
+    "en": "At this pace: the average per day since the first day with values this month, times the month's days – rough, but early in the month already a feel for the bill."
+  },
+  "power.note.both": {
+    "de": "Mitgeschrieben seit {since}: CPU + Grafikkarte von ihren Sensoren, alles andere von der Steckdose (aus ihrem Zähler – lief der Hardware Monitor nicht, ist ihre Energie gleichmäßig auf jene Stunden verteilt). Wo sie nicht maß: der übrige PC geschätzt.",
+    "en": "Logged since {since}: CPU + graphics card from their sensors, everything else from the plug (from its counter – while the Hardware Monitor did not run, its energy is spread evenly over those hours). Where it did not measure: the rest of the PC estimated."
+  },
+  "power.legend.cpu_gpu": {
+    "de": "CPU + GPU",
+    "en": "CPU + GPU"
+  },
+  "power.legend.rest": {
+    "de": "alles andere an der Steckdose",
+    "en": "everything else on the plug"
+  },
+  "power.legend.estimated": {
+    "de": "übriger PC, geschätzt",
+    "en": "rest of the PC, estimated"
+  },
+  "power.legend.expected": {
+    "de": "erwartet",
+    "en": "expected"
+  },
+  "power.legend.total": {
+    "de": "gesamt",
+    "en": "total"
+  },
+  "power.legend.rest_line": {
+    "de": "alles andere",
+    "en": "everything else"
+  },
+  "power.part.cpu_gpu": {
+    "de": "CPU + GPU {energy}",
+    "en": "CPU + GPU {energy}"
+  },
+  "power.part.rest": {
+    "de": "alles andere {energy}",
+    "en": "everything else {energy}"
+  },
+  "power.part.estimated": {
+    "de": "übriger PC ≈ {energy} (geschätzt)",
+    "en": "rest of the PC ≈ {energy} (estimated)"
+  },
+  "power.part.cpu_gpu_w": {
+    "de": "CPU + GPU {watts} W",
+    "en": "CPU + GPU {watts} W"
+  },
+  "power.part.rest_w": {
+    "de": "alles andere {watts} W",
+    "en": "everything else {watts} W"
+  },
+  "power.part.estimated_w": {
+    "de": "übriger PC ≈ {watts} W (geschätzt)",
+    "en": "rest of the PC ≈ {watts} W (estimated)"
+  },
+  "power.bar.expected": {
+    "de": "läuft – bis zum Ende erwartet ≈ {energy} · {cost}",
+    "en": "running – expected by its end ≈ {energy} · {cost}"
+  },
+  "power.bar.minute": {
+    "de": "{period}: Ø {watts} W – {parts}",
+    "en": "{period}: avg {watts} W – {parts}"
+  },
+  "power.average": {
+    "de": "Ø {value}",
+    "en": "avg {value}"
+  },
+  "power.table.total": {
+    "de": "Gesamt (kWh)",
+    "en": "Total (kWh)"
+  },
+  "power.table.cpu_gpu": {
+    "de": "CPU + GPU (kWh)",
+    "en": "CPU + GPU (kWh)"
+  },
+  "power.table.rest": {
+    "de": "Alles andere, gemessen (kWh)",
+    "en": "Everything else, measured (kWh)"
+  },
+  "power.table.estimated": {
+    "de": "Übriger PC, geschätzt (kWh)",
+    "en": "Rest of the PC, estimated (kWh)"
   },
   "power.hint.plug": {
-    "de": "Für die Werte eines Balkens mit der Maus darauf zeigen. Steckdose: von der smarten Steckdose gemessen. PC: geschätzt (Einstellungen auf der Toolbox-Seite, ⚙).",
-    "en": "Hover over a bar for its values. Plug: measured by the smart plug. PC: estimated (settings on the Toolbox page, ⚙)."
+    "de": "Mit der Maus über einen Balken: seine Werte. Unten CPU + Grafikkarte (von ihren Sensoren gemessen), darüber alles andere, das die Steckdose misst; grau: der übrige PC, geschätzt – wo die Steckdose nicht maß.",
+    "en": "Hover over a bar for its values. At the bottom CPU + graphics card (measured by their sensors), above everything else the plug measures; grey: the rest of the PC, estimated – where the plug did not measure."
   },
-  "power.chart.plug": {
-    "de": "an der Steckdose gemessen",
-    "en": "measured at the plug"
-  },
-  "power.chart.pc": {
-    "de": "PC, geschätzt",
-    "en": "PC, estimated"
-  },
-  "power.now.plug_sub": {
-    "de": "PC ≈ {pc} · Rest ≈ {rest}",
-    "en": "PC ≈ {pc} · rest ≈ {rest}"
+  "power.hint.plug_lines": {
+    "de": "Mit der Maus über eine Stelle: die Werte dieser Stunde, dieses Tages oder Monats. Die dicke Linie: alles zusammen; blau: CPU + Grafikkarte (gemessen); violett: alles andere – wo die Steckdose nicht maß, geschätzt.",
+    "en": "Hover over a spot for the values of that hour, day or month. The thick line: everything together; blue: CPU + graphics card (measured); violet: everything else – estimated where the plug did not measure."
   },
   "power.help.plug": {
-    "de": "Gemessen von {name}: alles an der Steckdose zieht gerade {watts} W. Davon der PC ≈ {pc} W (geschätzt); der Rest, ≈ {rest} W, sind die anderen Geräte daran (Monitor, Lautsprecher …).",
-    "en": "Measured by {name}: everything on the plug draws {watts} W right now. Of it the PC ≈ {pc} W (estimated); the rest, ≈ {rest} W, are the other devices on it (monitor, speakers …)."
+    "de": "Gemessen von {name}: alles an der Steckdose zieht gerade {watts} W. Davon CPU + Grafikkarte {cpu_gpu} W (von ihren Sensoren gemessen); alles andere – Mainboard, RAM, Lüfter, Netzteil, Monitor, Lautsprecher … – {rest} W.",
+    "en": "Measured by {name}: everything on the plug draws {watts} W right now. Of it CPU + graphics card {cpu_gpu} W (measured by their sensors); everything else – motherboard, RAM, fans, power supply, monitor, speakers … – {rest} W."
   },
   "power.help.plug_none": {
     "de": "Die Steckdose antwortet gerade nicht – ist sie an und im Heimnetz? Mehr zeigt die Toolbox-Seite.",
@@ -782,14 +890,6 @@
   "power.note.plug_empty": {
     "de": "Die Steckdose ist an – die ersten Werte erscheinen innerhalb einer Minute im Diagramm.",
     "en": "The plug is on – the first values appear in the chart within a minute."
-  },
-  "power.note.plug_on": {
-    "de": "Aufgezeichnet seit {since} aus dem Zähler der Steckdose – gemessen, für alles an der Steckdose. Lief der Hardware Monitor nicht, hat die Steckdose weitergezählt; diese Energie ist gleichmäßig auf jene Stunden verteilt.",
-    "en": "Logged since {since} from the plug's own counter – measured, for everything on the plug. While the Hardware Monitor didn't run, the plug counted on; that energy is spread evenly over those hours."
-  },
-  "fans.note.intro": {
-    "de": "Auto = die Grafikkarte oder das BIOS regelt den Lüfter, wie ohne dieses Programm. Kurve: die Drehzahl folgt einer Temperatur. Fest: immer dieselbe Drehzahl. Ab der roten Temperaturgrenze läuft ein gesteuerter Lüfter immer mit 100 %; beim Beenden geht jeder Lüfter zurück an die Automatik.",
-    "en": "Auto = the graphics card or the BIOS controls the fan, as without this program. Curve: the speed follows a temperature. Fixed: always the same speed. From the red temperature limit on, a controlled fan always runs at 100 %; when quitting, every fan is handed back."
   },
   "fans.note.none": {
     "de": "LibreHardwareMonitor kann auf diesem PC keinen Lüfter steuern – die Grafikkarte oder der Chip auf dem Mainboard lässt es nicht zu, oder die Brücke läuft ohne Admin-Rechte.",
@@ -800,12 +900,8 @@
     "en": "⚠ The Hardware Monitor ended last time while it controlled fans (crash, or ended in Task Manager). Until now they kept their last speed – a restart of Windows resets them for sure."
   },
   "fans.list.help": {
-    "de": "Klicke einen Lüfter an, um ihn unten einzustellen. Alle Lüfter einer Grafikkarte folgen gemeinsam einer Kurve.",
-    "en": "Click a fan to set it below. All fans of a graphics card follow one curve together."
-  },
-  "fans.gpu_fans": {
-    "de": "{name} – Lüfter",
-    "en": "{name} – fans"
+    "de": "Klicke einen Lüfter an, um ihn unten einzustellen – Strg+Klick wählt mehrere, Umschalt+Klick einen Bereich; dann gilt jede Änderung für alle. Ab der roten Temperaturgrenze läuft ein gesteuerter Lüfter mit 100 %; beim Beenden geht jeder Lüfter zurück an die Automatik.",
+    "en": "Click a fan to set it below – Ctrl+click selects several, Shift+click a range; then every change goes to all of them. From the red temperature limit on a controlled fan runs at 100 %; when quitting, every fan is handed back to automatic."
   },
   "fans.mode": {
     "de": "Modus",
@@ -898,6 +994,146 @@
   "fans.minimum.gpu": {
     "de": "Die Grafikkarte erlaubt gesteuert nicht weniger als {pct} % (Linie im Diagramm). In Auto kann sie ihre Lüfter im Leerlauf ganz anhalten (0 RPM) – im Leerlauf meist leiser als jede Kurve.",
     "en": "The graphics card doesn't allow less than {pct} % while it's controlled (line in the chart). In Auto it can stop its fans completely when idle (0 RPM) – at idle that's usually quieter than any curve."
+  },
+  "fans.group.gpu": {
+    "de": "Grafikkarte",
+    "en": "Graphics card"
+  },
+  "fans.group.board": {
+    "de": "Mainboard",
+    "en": "Motherboard"
+  },
+  "fans.group.cpu": {
+    "de": "CPU",
+    "en": "CPU"
+  },
+  "fans.group.gpu.note": {
+    "de": "Die Lüfter der Grafikkarte – alle Kanäle folgen gemeinsam einer Einstellung. Auto = die Karte regelt selbst, wie ohne dieses Programm.",
+    "en": "The graphics card's fans – all channels follow one setting together. Auto = the card controls them itself, as without this program."
+  },
+  "fans.group.board.note": {
+    "de": "Die Lüfteranschlüsse des Mainboards. Gib ihnen unten einen Namen (LibreHardwareMonitor kennt nur „Fan #1 …“) und markiere den des CPU-Kühlers als CPU-Lüfter. Auto = das BIOS regelt.",
+    "en": "The motherboard's fan headers. Give them a name below (LibreHardwareMonitor only knows \"Fan #1 …\") and mark the CPU cooler's one as CPU fan. Auto = the BIOS controls them."
+  },
+  "fans.group.cpu.note": {
+    "de": "Die Anschlüsse, die unter Mainboard als CPU-Lüfter markiert sind – jeder mit seiner eigenen Einstellung.",
+    "en": "The headers marked as CPU fan under Motherboard – each with its own setting."
+  },
+  "fans.gpu.none": {
+    "de": "Die Lüfter der Grafikkarte lassen sich auf diesem PC nicht steuern (der Treiber lässt es nicht zu).",
+    "en": "The graphics card's fans cannot be controlled on this PC (the driver does not allow it)."
+  },
+  "fans.board.none": {
+    "de": "Kein Lüfteranschluss des Mainboards lässt sich steuern – der Chip lässt es nicht zu, oder die Brücke läuft ohne Admin-Rechte.",
+    "en": "No fan header of the motherboard can be controlled – the chip does not allow it, or the bridge runs without admin rights."
+  },
+  "fans.board.all_cpu": {
+    "de": "Alle Anschlüsse sind als CPU-Lüfter markiert – sie stehen unter CPU.",
+    "en": "All headers are marked as CPU fans – they are listed under CPU."
+  },
+  "fans.cpu.none": {
+    "de": "Noch kein Anschluss ist als CPU-Lüfter markiert.",
+    "en": "No header is marked as CPU fan yet."
+  },
+  "fans.cpu.steps": {
+    "de": "1. Unter Mainboard den Anschluss suchen, dessen Drehzahl unter Last mitsteigt – oder ihn mit „Kurz aufdrehen“ heraushören.\n2. Ihm einen Namen geben (z. B. „CPU-Kühler“) und „CPU-Lüfter“ anhaken.\n3. Ab dann steht er hier.",
+    "en": "1. Under Motherboard, find the header whose speed rises under load – or hear it with \"Boost\".\n2. Give it a name (e.g. \"CPU cooler\") and tick \"CPU fan\".\n3. From then on it is listed here."
+  },
+  "fans.cpu.to_board": {
+    "de": "Zum Mainboard",
+    "en": "To the motherboard"
+  },
+  "fans.column.fan": {
+    "de": "Lüfter",
+    "en": "Fan"
+  },
+  "fans.column.speed": {
+    "de": "Drehzahl",
+    "en": "Speed"
+  },
+  "fans.column.control": {
+    "de": "Stellung",
+    "en": "Control"
+  },
+  "fans.column.mode": {
+    "de": "Modus",
+    "en": "Mode"
+  },
+  "fans.select_all": {
+    "de": "alle wählen",
+    "en": "select all"
+  },
+  "fans.select_one": {
+    "de": "nur einen",
+    "en": "just one"
+  },
+  "fans.select_all.help": {
+    "de": "Wählt alle Lüfter dieser Gruppe – jede Änderung im Editor gilt dann für alle.",
+    "en": "Selects all fans of this group – every change in the editor then goes to all of them."
+  },
+  "fans.channel": {
+    "de": "Lüfterkanal {n}",
+    "en": "Fan channel {n}"
+  },
+  "fans.channel.help": {
+    "de": "Der Treiber meldet {n} Lüfterkanäle, keine einzelnen Lüfter: an einem Kanal können mehrere Lüfter hängen (z. B. 3 Lüfter an 2 Kanälen) – sie drehen gleich schnell. Alle Kanäle folgen gemeinsam einer Einstellung.",
+    "en": "The driver reports {n} fan channels, not single fans: several fans can hang on one channel (e.g. 3 fans on 2 channels) – they turn at the same speed. All channels follow one setting together."
+  },
+  "fans.under_cpu": {
+    "de": "Unter CPU:",
+    "en": "Under CPU:"
+  },
+  "fans.under_cpu.help": {
+    "de": "Als CPU-Lüfter markiert – ein Klick zeigt ihn unter CPU.",
+    "en": "Marked as CPU fan – a click shows it under CPU."
+  },
+  "fans.unused": {
+    "de": "Drehen sich nicht (wohl nichts angeschlossen): {names}",
+    "en": "Not turning (probably nothing connected): {names}"
+  },
+  "fans.unused.help": {
+    "de": "Anschlüsse, die sich nicht gedreht haben, seit das Fenster offen ist – ein Klick klappt sie auf oder zu.",
+    "en": "Headers that have not turned since the window opened – a click folds them out or away."
+  },
+  "fans.name": {
+    "de": "Name",
+    "en": "Name"
+  },
+  "fans.name.help": {
+    "de": "Ein Name für diesen Anschluss – er steht dann auch im Tab Mainboard. Leer = wieder „{name}“.",
+    "en": "A name for this header – it is shown in the tab Motherboard too. Empty = \"{name}\" again."
+  },
+  "fans.cpu_fan": {
+    "de": "CPU-Lüfter",
+    "en": "CPU fan"
+  },
+  "fans.cpu_fan.help": {
+    "de": "Markiert diesen Anschluss als CPU-Lüfter: er steht dann unter CPU statt unter Mainboard.",
+    "en": "Marks this header as CPU fan: it is then listed under CPU instead of Motherboard."
+  },
+  "fans.boost": {
+    "de": "Kurz aufdrehen",
+    "en": "Boost"
+  },
+  "fans.boost.help": {
+    "de": "{seconds} Sekunden mit 100 %, dann wieder wie eingestellt – so hörst du, welcher Lüfter an diesem Anschluss hängt.",
+    "en": "{seconds} seconds at 100 %, then as set again – so you hear which fan hangs on this header."
+  },
+  "fans.state.boost": {
+    "de": "aufgedreht: 100 %",
+    "en": "boosted: 100 %"
+  },
+  "fans.together": {
+    "de": "{n} Lüfter zusammen",
+    "en": "{n} fans together"
+  },
+  "fans.together.same": {
+    "de": "Änderungen gelten für alle {n}.",
+    "en": "Changes go to all {n}."
+  },
+  "fans.together.differ": {
+    "de": "Änderungen gelten für alle {n}. Gezeigt ist {name}; abweichend eingestellt: {others} – bei der ersten Änderung bekommen alle die gezeigte Einstellung.",
+    "en": "Changes go to all {n}. Shown is {name}; set differently: {others} – at the first change all of them get the shown setting."
   },
   "health.status.good": {
     "de": "Gut",
