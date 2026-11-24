@@ -107,5 +107,7 @@ into a signed zip and publishes it as a GitHub release (the version from `Cargo.
 
 ## Later
 
-- **Fans tab**: choosing the fans and filtering them with the CPU / GPU buttons feels odd (hand test 2026-11-18) –
-  rethink with the user before changing it.
+- **Fans tab** (agreed with the user 2026-11-24, next after 1.0.0): a switch Graphics card | Motherboard | CPU at
+  the top. The motherboard's headers can be renamed (LHM only knows "Fan #1 … #7") and marked as CPU fans – those
+  are listed under "CPU". The graphics card shows its fan *channels* ("Fan channel 1 / 2") with a hover text: the
+  driver reports channels, not fans (the RTX 4060 Ti here has 3 fans on 2 channels – `nvmlDeviceGetNumFans` says 2).
