@@ -34,9 +34,12 @@ page; the privacy mode can also be switched in the tray menu and in the window. 
 shows is set in `detail_window.json` – its `help` at the top explains the format.
 
 What is yours lies in `dist\data\`: `settings.json` (settings, fan curves, the window's place),
-`hardware_monitor_energy.json` and `hardware_monitor_plug.json` (the power logs) and `log.txt`. The Toolbox's
+`hardware_monitor_energy.json` and `hardware_monitor_plug.json` (the power logs), `hardware_monitor_minutes.json`
+(the last hour per minute) and `log.txt`. The Toolbox's
 *Export…* takes all of it along except the log. The power logs are of version 2 since 2026-11-24 (per hour also
-CPU + GPU); a log of version 1 is discarded at the next start.
+CPU + GPU); a log of version 1 is discarded at the next start. The logs are saved every 5 minutes, the last hour
+once a minute, and all three when the monitor ends – also when Windows shuts down; only a crash or a power cut
+loses the time since.
 
 ## Removing it
 
@@ -114,7 +117,7 @@ into a signed zip and publishes it as a GitHub release (the version from `Cargo.
   (CPU + GPU measured, everything else at the plug, the rest of the PC estimated where the plug did not measure),
   the running bar with "expected" dashed, the average line, kWh | money, the line of the last 2 minutes, the month's
   forecast; the setting "Chart" bars | lines on the page; logs of version 2 (old ones discarded); the view
-  "60 minutes" per minute in W (the monitor keeps the last hour in memory only); with lines, the running period's
+  "60 minutes" per minute in W (the last hour is saved once a minute and outlasts a restart); with lines, the running period's
   point stands where it is expected to end (dashed) – too early in it, it is left out, so a new hour does not pull
   the lines down
 - ◐ A fresh PC from the release zip alone

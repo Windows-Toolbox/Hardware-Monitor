@@ -35,6 +35,8 @@ const STRIPE_GPU: u32 = 0x76b900;
 
 pub const ENERGY_FILE: &str = "hardware_monitor_energy.json";
 pub const PLUG_FILE: &str = "hardware_monitor_plug.json";
+/// The last hour per minute (`energy::MinuteLog`).
+pub const MINUTES_FILE: &str = "hardware_monitor_minutes.json";
 
 /// The fans through the bridge.
 struct Through<'a>(&'a Bridge);
@@ -170,7 +172,7 @@ fn session(rt: &Runtime<Monitor>, b: &Bridge) -> Result<(), String> {
     let nvml = Nvml::open();
     let mut energy = EnergyLog::load(app::data_dir().join(ENERGY_FILE));
     let mut plug_log = PlugLog::load(app::data_dir().join(PLUG_FILE));
-    let mut minutes = MinuteLog::default();
+    let mut minutes = MinuteLog::load(app::data_dir().join(MINUTES_FILE));
     let mut plug = PlugState::new();
     let mut controller = Controller::default();
     let (mut later, mut complete, mut battery) = (false, false, false);
@@ -337,7 +339,7 @@ fn session(rt: &Runtime<Monitor>, b: &Bridge) -> Result<(), String> {
 
         // A "Delete all saved data" from the page while running: both logs.
         if rt.with(|p, _| std::mem::take(&mut p.energy_delete_asked)) {
-            let ok = energy.delete_all() & plug_log.delete_all();
+            let ok = energy.delete_all() & plug_log.delete_all() & minutes.delete_all();
             app::log(if ok { "the power logs were deleted" } else { "the power logs could not be deleted" });
         }
 
@@ -352,6 +354,7 @@ fn session(rt: &Runtime<Monitor>, b: &Bridge) -> Result<(), String> {
     controller.release_all(&mut Through(b));
     energy.save();
     plug_log.save();
+    minutes.save();
     result
 }
 

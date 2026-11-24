@@ -9,6 +9,13 @@ After adding it, press **Set up** on its page once: it installs the driver PawnI
 bridge into a folder only admins can write to, and a task in Task Scheduler – Windows asks for admin rights once.
 The monitor itself runs without admin rights.
 
+## New in 1.0.2
+
+- **Nothing of the power logs is lost any more when Windows shuts down** (or on Quit): the monitor saves them
+  before it ends. Before, up to the last 5 minutes were missing.
+- **The view "60 minutes" outlasts a restart:** the last hour is saved once a minute; minutes the monitor did not
+  run stay empty.
+
 ## New in 1.0.1
 
 - **Fans tab:** a switch Graphics card | Motherboard | CPU. Motherboard headers can be given a name (it shows in

@@ -157,19 +157,52 @@ pub fn minute_key(t: SystemTime) -> String {
     format!("{y:04}-{mo:02}-{d:02}T{h:02}:{mi:02}")
 }
 
-/// The last hour per minute – for the Power tab's view "60 minutes"; kept in memory only. Like the two logs: the
-/// estimate with CPU + GPU, and the plug – here from its power right now (its counter counts whole Wh, too coarse
-/// for a minute).
+/// The last hour per minute – for the Power tab's view "60 minutes". Like the two logs: the estimate with CPU + GPU,
+/// and the plug – here from its power right now (its counter counts whole Wh, too coarse for a minute). Saved once a
+/// minute to `data\hardware_monitor_minutes.json` ({"version": 2, "estimate": {…}, "plug": {…}}, keys
+/// "YYYY-MM-DDTHH:MM"), so that a restart of the monitor keeps the hour; minutes it did not run stay empty.
 #[derive(Default)]
 pub struct MinuteLog {
+    /// None: kept in memory only (tests).
+    file: Option<PathBuf>,
     pub estimate: Hours,
     pub plug: Hours,
     last: Option<Instant>,
+    saved: Option<Instant>,
 }
 
 impl MinuteLog {
     /// How many minutes are kept – the hour shown and the minute running.
     const KEEP: u64 = 61;
+    const SAVE_EVERY: Duration = Duration::from_secs(60);
+
+    /// The minutes saved last time – those of the last hour.
+    pub fn load(file: PathBuf) -> MinuteLog {
+        let (v, _) = read_file(&file);
+        let read = |part: &str| read_hours(&json!({"version": v["version"], "hours": v[part]}));
+        let mut log = MinuteLog { estimate: read("estimate"), plug: read("plug"), file: Some(file), ..Default::default() };
+        log.prune(SystemTime::now());
+        log
+    }
+
+    fn prune(&mut self, at: SystemTime) {
+        // Keys of one format sort by time.
+        let oldest = minute_key(at - Duration::from_secs(Self::KEEP * 60));
+        self.estimate.retain(|k, _| *k > oldest);
+        self.plug.retain(|k, _| *k > oldest);
+    }
+
+    pub fn save(&mut self) {
+        let Some(file) = &self.file else { return };
+        write(file, &json!({"version": VERSION, "estimate": self.estimate, "plug": self.plug}));
+        self.saved = Some(Instant::now());
+    }
+
+    pub fn delete_all(&mut self) -> bool {
+        self.estimate.clear();
+        self.plug.clear();
+        self.file.as_ref().is_none_or(|f| !f.exists() || std::fs::remove_file(f).is_ok())
+    }
 
     pub fn add(&mut self, watts: f64, cpu_gpu: f64, plug: Option<f64>, now: Instant, at: SystemTime) {
         let last = self.last.replace(now);
@@ -188,10 +221,10 @@ impl MinuteLog {
             e[0] += p * seconds / 3600.0;
             e[1] += seconds;
         }
-        // Keys of one format sort by time.
-        let oldest = minute_key(at - Duration::from_secs(Self::KEEP * 60));
-        self.estimate.retain(|k, _| *k > oldest);
-        self.plug.retain(|k, _| *k > oldest);
+        self.prune(at);
+        if self.saved.is_none_or(|t| t.elapsed() >= Self::SAVE_EVERY) {
+            self.save();
+        }
     }
 
     pub fn pause(&mut self) {
@@ -754,6 +787,27 @@ mod tests {
         // 2 hours later: the old minutes go.
         log.add(240.0, 100.0, None, t0 + Duration::from_secs(25), at + Duration::from_secs(7200));
         assert_eq!((log.estimate.len(), log.plug.len()), (1, 0));
+    }
+
+    #[test]
+    fn the_minutes_outlast_a_restart() {
+        let dir = temp("minutes");
+        let file = dir.join("hardware_monitor_minutes.json");
+        let mut log = MinuteLog::load(file.clone());
+        let (t0, at) = (Instant::now(), SystemTime::now());
+        log.add(240.0, 100.0, Some(300.0), t0, at);
+        log.add(240.0, 100.0, Some(300.0), t0 + Duration::from_secs(15), at);
+        assert!(file.exists(), "saved at the first minute");
+        // Older than an hour in the file: it goes at the next start.
+        let mut v: Value = serde_json::from_str(&std::fs::read_to_string(&file).unwrap()).unwrap();
+        v["estimate"]["2020-01-01T00:00"] = json!([1.0, 60.0, 0.0]);
+        std::fs::write(&file, v.to_string()).unwrap();
+        let again = MinuteLog::load(file.clone());
+        assert_eq!((again.estimate.len(), again.plug.len()), (1, 1));
+        assert_eq!(again.estimate[&minute_key(at)][0], 1.0);
+        let mut again = again;
+        assert!(again.delete_all() && !file.exists());
+        std::fs::remove_dir_all(&dir).ok();
     }
 
     #[test]

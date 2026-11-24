@@ -708,8 +708,8 @@
     "en": "Logged since {since} while the Hardware Monitor runs: CPU and graphics card measured, the rest of the PC estimated (the Toolbox page explains how)."
   },
   "power.note.minutes": {
-    "de": "Die letzten 60 Minuten hält der Hardware Monitor nur im Speicher: nach seinem Start füllt sich diese Ansicht neu.",
-    "en": "The Hardware Monitor keeps the last 60 minutes in memory only: after it starts, this view fills anew."
+    "de": "Pro Minute die durchschnittliche Leistung. Der Hardware Monitor hebt die letzte Stunde auch über einen Neustart auf; Minuten, in denen er nicht lief, bleiben leer.",
+    "en": "Per minute the average power. The Hardware Monitor keeps the last hour across a restart too; minutes it did not run stay empty."
   },
   "power.chart.hour": {
     "de": "Leistung pro Minute – letzte 60 Minuten",

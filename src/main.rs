@@ -526,7 +526,7 @@ impl Program for Monitor {
                     self.energy_delete_asked = true;
                     return Some(t!("toast.deleted"));
                 }
-                let ok = [monitor::ENERGY_FILE, monitor::PLUG_FILE].iter().all(|f| {
+                let ok = [monitor::ENERGY_FILE, monitor::PLUG_FILE, monitor::MINUTES_FILE].iter().all(|f| {
                     let file = app::data_dir().join(f);
                     !file.exists() || std::fs::remove_file(&file).is_ok()
                 });
