@@ -80,6 +80,9 @@ pub struct Settings {
     /// "WxH+X+Y" or "".
     pub window: String,
     pub energy_logging: bool,
+    /// For the Power tab's "Now" help: the estimate's two settings.
+    pub energy_other_watts: u32,
+    pub energy_psu_efficiency: u32,
     pub energy_price: f64,
     pub energy_currency: String,
     pub plug: bool,

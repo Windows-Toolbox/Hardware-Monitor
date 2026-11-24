@@ -815,6 +815,50 @@
     "de": "{n} Zeilen als Tabelle kopiert",
     "en": "Copied {n} rows as a table"
   },
+  "power.source.plug": {
+    "de": "Steckdose",
+    "en": "Plug"
+  },
+  "power.source.pc": {
+    "de": "PC",
+    "en": "PC"
+  },
+  "power.source.help": {
+    "de": "Steckdose: von der smarten Steckdose gemessen – alles, was an ihr hängt, z. B. der ganze Schreibtisch. PC: geschätzt – CPU und Grafikkarte werden gemessen, der Rest des PCs ist ein fester Wert.",
+    "en": "Plug: measured by the smart plug – everything on it, e.g. the whole desk. PC: estimated – CPU and graphics card are measured, the rest of the PC is a fixed value."
+  },
+  "power.hint.plug": {
+    "de": "Für die Werte eines Balkens mit der Maus darauf zeigen. Steckdose: von der smarten Steckdose gemessen. PC: geschätzt (Einstellungen auf der Toolbox-Seite, ⚙).",
+    "en": "Hover over a bar for its values. Plug: measured by the smart plug. PC: estimated (settings on the Toolbox page, ⚙)."
+  },
+  "power.chart.plug": {
+    "de": "an der Steckdose gemessen",
+    "en": "measured at the plug"
+  },
+  "power.chart.pc": {
+    "de": "PC, geschätzt",
+    "en": "PC, estimated"
+  },
+  "power.now.plug_sub": {
+    "de": "PC ≈ {pc} · Rest ≈ {rest}",
+    "en": "PC ≈ {pc} · rest ≈ {rest}"
+  },
+  "power.help.plug": {
+    "de": "Gemessen von {name}: alles an der Steckdose zieht gerade {watts} W. Davon der PC ≈ {pc} W (geschätzt); der Rest, ≈ {rest} W, sind die anderen Geräte daran (Monitor, Lautsprecher …).",
+    "en": "Measured by {name}: everything on the plug draws {watts} W right now. Of it the PC ≈ {pc} W (estimated); the rest, ≈ {rest} W, are the other devices on it (monitor, speakers …)."
+  },
+  "power.help.plug_none": {
+    "de": "Die Steckdose antwortet gerade nicht – ist sie an und im Heimnetz? Mehr zeigt die Toolbox-Seite.",
+    "en": "The plug doesn't answer right now – is it on and in the home network? The Toolbox page shows more."
+  },
+  "power.note.plug_empty": {
+    "de": "Die Steckdose ist an – die ersten Werte erscheinen innerhalb einer Minute im Diagramm.",
+    "en": "The plug is on – the first values appear in the chart within a minute."
+  },
+  "power.note.plug_on": {
+    "de": "Aufgezeichnet seit {since} aus dem Zähler der Steckdose – gemessen, für alles an der Steckdose. Lief der Hardware Monitor nicht, hat die Steckdose weitergezählt; diese Energie ist gleichmäßig auf jene Stunden verteilt.",
+    "en": "Logged since {since} from the plug's own counter – measured, for everything on the plug. While the Hardware Monitor didn't run, the plug counted on; that energy is spread evenly over those hours."
+  },
   "fans.note.intro": {
     "de": "Auto = die Grafikkarte oder das BIOS regelt den Lüfter, wie ohne dieses Programm. Kurve: die Drehzahl folgt einer Temperatur. Fest: immer dieselbe Drehzahl. Ab der roten Temperaturgrenze läuft ein gesteuerter Lüfter immer mit 100 %; beim Beenden geht jeder Lüfter zurück an die Automatik.",
     "en": "Auto = the graphics card or the BIOS controls the fan, as without this program. Curve: the speed follows a temperature. Fixed: always the same speed. From the red temperature limit on, a controlled fan always runs at 100 %; when quitting, every fan is handed back."

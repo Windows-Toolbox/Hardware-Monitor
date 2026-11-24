@@ -289,6 +289,8 @@ fn session(rt: &Runtime<Monitor>, b: &Bridge) -> Result<(), String> {
                 privacy_mode: s.privacy_mode,
                 window: geometry.clone(),
                 energy_logging: s.energy_logging,
+                energy_other_watts: s.energy_other_watts,
+                energy_psu_efficiency: s.energy_psu_efficiency,
                 energy_price: price,
                 energy_currency: s.energy_currency.trim().to_string(),
                 plug: s.plug,

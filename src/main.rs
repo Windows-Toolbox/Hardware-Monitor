@@ -19,11 +19,13 @@
 mod bridge;
 mod content;
 mod energy;
+mod fan_view;
 mod fans;
 mod link;
 mod monitor;
 mod nvml;
 mod plug;
+mod power_view;
 mod sensors;
 mod window;
 

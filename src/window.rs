@@ -170,6 +170,15 @@ fn work_area(x: i32, y: i32) -> Option<[i32; 4]> {
 /// How long a clicked privacy switch is shown before the monitor's word counts again.
 const PRIVACY_WAIT: Duration = Duration::from_secs(3);
 
+/// What a tab's view wants after a frame: the footer's text, something copied (text, message), a message to the
+/// monitor.
+#[derive(Default)]
+pub struct ViewOut {
+    pub footer: Option<String>,
+    pub copy: Option<(String, String)>,
+    pub send: Option<ToMonitor>,
+}
+
 /// A short message in the footer.
 struct Message {
     text: String,
@@ -202,6 +211,8 @@ struct App {
     opened: Instant,
     /// The privacy switch as just clicked – shown at once, until the monitor's answer says the same (or it is late).
     privacy_clicked: Option<(bool, Instant)>,
+    power: crate::power_view::PowerView,
+    fans: crate::fan_view::FanView,
 }
 
 /// The row under the mouse this frame, and what a click there would copy.
@@ -230,6 +241,8 @@ impl App {
             footer: (String::new(), Color32::GRAY),
             opened: Instant::now(),
             privacy_clicked: None,
+            power: Default::default(),
+            fans: Default::default(),
         }
     }
 
@@ -414,17 +427,29 @@ impl eframe::App for App {
             ui.add_space(4.0);
         });
         let mut hover: Option<Hover> = None;
+        let mut out = ViewOut::default();
         egui::CentralPanel::default().show(ui, |ui| match tab.as_ref().and_then(|t| t.view.clone()).as_deref() {
             None | Some("all") => {
                 if let Some(tab) = &tab {
                     hover = self.list(ui, &ctx, tab, &state, answered);
                 }
             }
+            Some("power") => self.power.show(ui, &state, &mut out),
+            Some("fans") => self.fans.show(ui, &state, answered, &mut out),
             Some(_) => {
                 ui.add_space(20.0);
                 ui.label(RichText::new(t!("window.coming")).color(ui::muted(ui)));
             }
         });
+        if let Some(msg) = out.send {
+            self.send(&msg);
+        }
+        if let Some((text, message)) = out.copy {
+            self.copy(&ctx, text, message);
+        }
+        if footer.is_none() {
+            footer = out.footer.map(|f| (f, ui::muted(ui)));
+        }
 
         // Next frame's footer: a message, a mistake in the file, a button's help, the row under the mouse – or the hint.
         if let Some(m) = &self.message {

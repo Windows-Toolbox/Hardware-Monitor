@@ -34,6 +34,12 @@ pub fn hour_key(t: SystemTime) -> String {
 
 /// (year, month, day, hour) in local time.
 pub fn local(t: SystemTime) -> (u16, u16, u16, u16) {
+    let (y, mo, d, h, _) = local_minute(t);
+    (y, mo, d, h)
+}
+
+/// (year, month, day, hour, minute) in local time.
+pub fn local_minute(t: SystemTime) -> (u16, u16, u16, u16, u16) {
     use windows_sys::Win32::Foundation::{FILETIME, SYSTEMTIME};
     use windows_sys::Win32::System::Time::{FileTimeToSystemTime, SystemTimeToTzSpecificLocalTime};
     let since = t.duration_since(UNIX_EPOCH).unwrap_or_default();
@@ -44,7 +50,7 @@ pub fn local(t: SystemTime) -> (u16, u16, u16, u16) {
         let (mut utc, mut here): (SYSTEMTIME, SYSTEMTIME) = (std::mem::zeroed(), std::mem::zeroed());
         FileTimeToSystemTime(&ft, &mut utc);
         SystemTimeToTzSpecificLocalTime(std::ptr::null(), &utc, &mut here);
-        (here.wYear, here.wMonth, here.wDay, here.wHour)
+        (here.wYear, here.wMonth, here.wDay, here.wHour, here.wMinute)
     }
 }
 
@@ -243,6 +249,193 @@ pub fn fmt_date(day: &str) -> String {
     if kit::i18n::language() == "de" && day.len() == 10 { format!("{}.{}.{}", &day[8..10], &day[5..7], &day[..4]) } else { day.to_string() }
 }
 
+// ---------- The chart of the window's Power tab (python\energy.py: buckets, fmt_energy, fmt_duration) ----------
+
+/// The three views of the chart.
+pub const VIEWS: [&str; 3] = ["day", "month", "year"];
+
+/// A moment of local time to the hour: (year, month, day, hour).
+pub type LocalHour = (i32, u32, u32, u32);
+
+/// Days since 1970-01-01 of a date (proleptic Gregorian calendar).
+fn days_from_civil(y: i32, m: u32, d: u32) -> i64 {
+    let y = if m <= 2 { y - 1 } else { y } as i64;
+    let era = y.div_euclid(400);
+    let yoe = y - era * 400;
+    let mp = (m as i64 + 9) % 12;
+    let doy = (153 * mp + 2) / 5 + d as i64 - 1;
+    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+    era * 146_097 + doe - 719_468
+}
+
+fn civil_from_days(z: i64) -> (i32, u32, u32) {
+    let z = z + 719_468;
+    let era = z.div_euclid(146_097);
+    let doe = z - era * 146_097;
+    let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = (doy - (153 * mp + 2) / 5 + 1) as u32;
+    let m = if mp < 10 { mp + 3 } else { mp - 9 } as u32;
+    ((yoe + era * 400 + if m <= 2 { 1 } else { 0 }) as i32, m, d)
+}
+
+/// 0 = Monday.
+pub fn weekday(y: i32, m: u32, d: u32) -> usize {
+    (days_from_civil(y, m, d) + 3).rem_euclid(7) as usize
+}
+
+/// One bar: where it starts, Wh, measured seconds.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Bucket {
+    pub start: LocalHour,
+    pub wh: f64,
+    pub seconds: f64,
+}
+
+/// The bars of a view, oldest first, empty ones included: "day" = the last 24 hours, "month" = the last 30 days,
+/// "year" = the last 12 months – up to and including `now`.
+pub fn buckets(hours: &Hours, view: &str, now: LocalHour) -> Vec<Bucket> {
+    let (y, m, d, h) = now;
+    let today = days_from_civil(y, m, d);
+    let starts: Vec<LocalHour> = match view {
+        "day" => (0..24)
+            .rev()
+            .map(|i| {
+                let hour = today * 24 + h as i64 - i;
+                let (y, m, d) = civil_from_days(hour.div_euclid(24));
+                (y, m, d, hour.rem_euclid(24) as u32)
+            })
+            .collect(),
+        "month" => (0..30)
+            .rev()
+            .map(|i| {
+                let (y, m, d) = civil_from_days(today - i);
+                (y, m, d, 0)
+            })
+            .collect(),
+        _ => (0..12)
+            .rev()
+            .map(|i| {
+                let months = y * 12 + m as i32 - 1 - i;
+                (months.div_euclid(12), months.rem_euclid(12) as u32 + 1, 1, 0)
+            })
+            .collect(),
+    };
+    // Which bar a log key ("YYYY-MM-DDTHH") belongs to.
+    let bar_of = |key: &str| -> Option<LocalHour> {
+        let num = |a: usize, b: usize| key.get(a..b)?.parse::<u32>().ok();
+        let (ky, km, kd, kh) = (num(0, 4)? as i32, num(5, 7)?, num(8, 10)?, num(11, 13)?);
+        Some(match view {
+            "day" => (ky, km, kd, kh),
+            "month" => (ky, km, kd, 0),
+            _ => (ky, km, 1, 0),
+        })
+    };
+    let mut sums: BTreeMap<LocalHour, [f64; 2]> = BTreeMap::new();
+    for (k, [wh, s]) in hours {
+        if let Some(bar) = bar_of(k) {
+            let e = sums.entry(bar).or_insert([0.0, 0.0]);
+            e[0] += wh;
+            e[1] += s;
+        }
+    }
+    starts
+        .into_iter()
+        .map(|start| {
+            let [wh, seconds] = sums.get(&start).copied().unwrap_or([0.0, 0.0]);
+            Bucket { start, wh, seconds }
+        })
+        .collect()
+}
+
+/// Now, to the hour.
+pub fn now_hour() -> LocalHour {
+    let (y, m, d, h) = local(SystemTime::now());
+    (y as i32, m as u32, d as u32, h as u32)
+}
+
+/// 1234 Wh → "1.23 kWh"; `unit` "Wh" → "1234 Wh".
+pub fn fmt_energy(wh: f64, unit: &str) -> String {
+    if unit == "Wh" { format!("{} Wh", num(wh, 0)) } else { fmt_kwh(wh) }
+}
+
+/// 3725 → "1 h 2 min", 200000 → "2 d 7 h".
+pub fn fmt_duration(seconds: f64) -> String {
+    let minutes = (seconds.max(0.0) / 60.0) as u64;
+    let (days, hours, minutes) = (minutes / 1440, minutes / 60 % 24, minutes % 60);
+    if days > 0 {
+        format!("{days} d {hours} h")
+    } else if hours > 0 {
+        format!("{hours} h {minutes} min")
+    } else {
+        format!("{minutes} min")
+    }
+}
+
+/// How long Windows has been running – "Up time" in Task Manager.
+pub fn uptime_seconds() -> f64 {
+    unsafe { windows_sys::Win32::System::SystemInformation::GetTickCount64() as f64 / 1000.0 }
+}
+
+/// A round step for the axis (1, 2, 2.5 or 5 × 10^n), so that about 3 gridlines fit up to `value`.
+pub fn nice_step(value: f64) -> f64 {
+    if value <= 0.0 {
+        return 1.0;
+    }
+    let raw = value / 3.0;
+    let power = 10f64.powf(raw.log10().floor());
+    for factor in [1.0, 2.0, 2.5, 5.0, 10.0] {
+        if raw <= factor * power {
+            return factor * power;
+        }
+    }
+    10.0 * power
+}
+
+const DAYS_EN: [&str; 7] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const DAYS_DE: [&str; 7] = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+const MONTHS_EN: [&str; 12] = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTHS_DE: [&str; 12] = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
+
+pub fn month_name(m: u32) -> &'static str {
+    let names = if kit::i18n::language() == "de" { &MONTHS_DE } else { &MONTHS_EN };
+    names[(m as usize + 11) % 12]
+}
+
+/// "6 Nov" / "6. Nov".
+pub fn day_month(d: u32, m: u32) -> String {
+    if kit::i18n::language() == "de" { format!("{d}. {}", month_name(m)) } else { format!("{d} {}", month_name(m)) }
+}
+
+/// A bar's period: "Thu 6 Nov, 14:00–15:00" / "Thu 6 Nov" / "Nov 2026".
+pub fn period(start: LocalHour, view: &str) -> String {
+    let (y, m, d, h) = start;
+    let days = if kit::i18n::language() == "de" { &DAYS_DE } else { &DAYS_EN };
+    let day = format!("{} {}", days[weekday(y, m, d)], day_month(d, m));
+    match view {
+        "day" => format!("{day}, {h:02}:00–{:02}:00", (h + 1) % 24),
+        "month" => day,
+        _ => format!("{} {y}", month_name(m)),
+    }
+}
+
+/// The label under a bar – not every bar has one.
+pub fn x_label(start: LocalHour, i: usize, count: usize, view: &str) -> Option<String> {
+    let (_, m, d, h) = start;
+    match view {
+        "day" => (h % 6 == 0).then(|| format!("{h:02}:00")),
+        "month" => ((count - 1 - i) % 7 == 0).then(|| day_month(d, m)),
+        _ => Some(month_name(m).to_string()),
+    }
+}
+
+/// "HH:MM" of a moment in local time.
+pub fn clock(t: SystemTime) -> String {
+    let (_, _, _, h, mi) = local_minute(t);
+    format!("{h:02}:{mi:02}")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -307,5 +500,53 @@ mod tests {
         let again = PlugLog::load(file);
         assert_eq!((again.hours.len(), again.last.map(|l| l.1)), (4, Some(0.5)), "the last reading is kept for the next start");
         std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn dates_back_and_forth() {
+        for (y, m, d) in [(1970, 1, 1), (2000, 2, 29), (2026, 11, 24), (2027, 1, 1), (2024, 12, 31)] {
+            assert_eq!(civil_from_days(days_from_civil(y, m, d)), (y, m, d));
+        }
+        assert_eq!(days_from_civil(1970, 1, 2), 1);
+        // 2026-11-24 is a Tuesday, 2026-11-06 a Friday.
+        assert_eq!((weekday(2026, 11, 24), weekday(2026, 11, 6)), (1, 4));
+    }
+
+    #[test]
+    fn the_bars_of_the_three_views() {
+        let mut hours = Hours::new();
+        hours.insert("2026-11-24T00".into(), [10.0, 3600.0]);
+        hours.insert("2026-11-23T23".into(), [20.0, 1800.0]);
+        hours.insert("2026-11-01T12".into(), [5.0, 60.0]);
+        hours.insert("2025-12-31T23".into(), [7.0, 60.0]);
+        hours.insert("2025-11-30T10".into(), [100.0, 60.0]); // 13 months back: in no bar
+        hours.insert("broken".into(), [1.0, 1.0]);
+        let now = (2026, 11, 24, 0);
+        let day = buckets(&hours, "day", now);
+        assert_eq!(day.len(), 24);
+        assert_eq!((day[0].start, day[23].start), ((2026, 11, 23, 1), (2026, 11, 24, 0)));
+        assert_eq!((day[22].wh, day[23].wh, day[23].seconds), (20.0, 10.0, 3600.0));
+        let month = buckets(&hours, "month", now);
+        assert_eq!((month.len(), month[0].start, month[29].start), (30, (2026, 10, 26, 0), (2026, 11, 24, 0)));
+        assert_eq!((month[28].wh, month[29].wh, month[6].wh), (20.0, 10.0, 5.0));
+        let year = buckets(&hours, "year", now);
+        assert_eq!((year.len(), year[0].start, year[11].start), (12, (2025, 12, 1, 0), (2026, 11, 1, 0)));
+        assert_eq!((year[0].wh, year[11].wh), (7.0, 35.0));
+        assert_eq!(year.iter().map(|b| b.wh).sum::<f64>(), 42.0);
+        // Over the new year, to the hour.
+        assert_eq!(buckets(&hours, "day", (2027, 1, 1, 0))[0].start, (2026, 12, 31, 1));
+    }
+
+    #[test]
+    fn durations_steps_and_labels() {
+        kit::texts!();
+        kit::i18n::set_language("en");
+        assert_eq!((fmt_duration(3725.0), fmt_duration(200_000.0), fmt_duration(59.0)), ("1 h 2 min".into(), "2 d 7 h".into(), "0 min".into()));
+        assert_eq!((nice_step(9.0), nice_step(0.5), nice_step(70.0), nice_step(0.0)), (5.0, 0.2, 25.0, 1.0));
+        assert_eq!(period((2026, 11, 6, 23), "day"), "Fri 6 Nov, 23:00–00:00");
+        assert_eq!(period((2026, 11, 1, 0), "year"), "Nov 2026");
+        assert_eq!(x_label((2026, 11, 6, 6), 0, 24, "day").as_deref(), Some("06:00"));
+        assert_eq!(x_label((2026, 11, 6, 7), 0, 24, "day"), None);
+        assert_eq!(fmt_energy(1234.0, "Wh"), "1234 Wh");
     }
 }

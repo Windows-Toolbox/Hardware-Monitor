@@ -24,7 +24,7 @@ pub const INTERVAL: Duration = Duration::from_secs(2);
 const HYSTERESIS: f64 = 3.0;
 /// Set the speed again anyway – after sleep the driver may have taken over again.
 const REAPPLY: Duration = Duration::from_secs(30);
-const MAX_POINTS: usize = 8;
+pub const MAX_POINTS: usize = 8;
 
 /// A fan (or all fans of a graphics card) that can be controlled.
 #[derive(Debug, Clone, PartialEq)]
