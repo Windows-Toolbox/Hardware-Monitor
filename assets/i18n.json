@@ -755,6 +755,14 @@
     "de": "{period}: nichts mitgeschrieben (PC aus, Hardware Monitor lief nicht oder Mitschreiben aus)",
     "en": "{period}: nothing logged (PC off, Hardware Monitor not running or logging off)"
   },
+  "power.bar.standby": {
+    "de": "{period}: {energy} · {cost} – PC aus, nur Standby an der Steckdose (aus ihrem Zähler)",
+    "en": "{period}: {energy} · {cost} – PC off, only standby on the plug (from its counter)"
+  },
+  "power.legend.standby": {
+    "de": "PC aus (Standby)",
+    "en": "PC off (standby)"
+  },
   "power.table.period": {
     "de": "Zeitraum",
     "en": "Period"
@@ -872,12 +880,12 @@
     "en": "Rest of the PC, estimated (kWh)"
   },
   "power.hint.plug": {
-    "de": "Mit der Maus über einen Balken: seine Werte. Unten CPU + Grafikkarte (von ihren Sensoren gemessen), darüber alles andere, das die Steckdose misst; grau: der übrige PC, geschätzt – wo die Steckdose nicht maß.",
-    "en": "Hover over a bar for its values. At the bottom CPU + graphics card (measured by their sensors), above everything else the plug measures; grey: the rest of the PC, estimated – where the plug did not measure."
+    "de": "Mit der Maus über einen Balken: seine Werte. Unten CPU + Grafikkarte (von ihren Sensoren gemessen), darüber alles andere, das die Steckdose misst; grau: der übrige PC, geschätzt – wo die Steckdose nicht maß; hellgrau: PC aus, nur Standby.",
+    "en": "Hover over a bar for its values. At the bottom CPU + graphics card (measured by their sensors), above everything else the plug measures; grey: the rest of the PC, estimated – where the plug did not measure; light grey: PC off, only standby."
   },
   "power.hint.plug_lines": {
-    "de": "Mit der Maus über eine Stelle: die Werte dieser Stunde, dieses Tages oder Monats. Die dicke Linie: alles zusammen; blau: CPU + Grafikkarte (gemessen); violett: alles andere – wo die Steckdose nicht maß, geschätzt.",
-    "en": "Hover over a spot for the values of that hour, day or month. The thick line: everything together; blue: CPU + graphics card (measured); violet: everything else – estimated where the plug did not measure."
+    "de": "Mit der Maus über eine Stelle: die Werte dieser Stunde, dieses Tages oder Monats. Die dicke Linie: alles zusammen; blau: CPU + Grafikkarte (gemessen); türkis: alles andere – wo die Steckdose nicht maß, geschätzt.",
+    "en": "Hover over a spot for the values of that hour, day or month. The thick line: everything together; blue: CPU + graphics card (measured); teal: everything else – estimated where the plug did not measure."
   },
   "power.help.plug": {
     "de": "Gemessen von {name}: alles an der Steckdose zieht gerade {watts} W. Davon CPU + Grafikkarte {cpu_gpu} W (von ihren Sensoren gemessen); alles andere – Mainboard, RAM, Lüfter, Netzteil, Monitor, Lautsprecher … – {rest} W.",

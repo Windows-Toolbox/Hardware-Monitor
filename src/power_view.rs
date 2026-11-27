@@ -25,9 +25,9 @@ use crate::window::ViewOut;
 
 /// How far back the line in the tile "Now" goes.
 const SPARK: Duration = Duration::from_secs(120);
-/// The colour of "everything else" – a violet that stands apart from the accent's blue.
-const VIOLET: Color32 = Color32::from_rgb(0xb4, 0x9c, 0xf0);
-const VIOLET_ON_LIGHT: Color32 = Color32::from_rgb(0x7c, 0x5c, 0xc4);
+/// The colour of "everything else" – a teal that stands apart from the accent's blue.
+const TEAL: Color32 = Color32::from_rgb(0x5f, 0xd4, 0xc0);
+const TEAL_ON_LIGHT: Color32 = Color32::from_rgb(0x12, 0x8a, 0x78);
 
 pub struct PowerView {
     view: &'static str,
@@ -48,13 +48,23 @@ pub fn shade(c: Color32, f: f32) -> Color32 {
     Color32::from_rgb((c.r() as f32 * f) as u8, (c.g() as f32 * f) as u8, (c.b() as f32 * f) as u8)
 }
 
-fn violet(ui: &egui::Ui) -> Color32 {
-    if ui.visuals().dark_mode { VIOLET } else { VIOLET_ON_LIGHT }
+fn teal(ui: &egui::Ui) -> Color32 {
+    if ui.visuals().dark_mode { TEAL } else { TEAL_ON_LIGHT }
 }
 
 /// The three parts of a bar, bottom up: CPU + GPU, the rest at the plug, the estimated rest of the PC.
 fn part_colors(ui: &egui::Ui) -> [Color32; 3] {
-    [ui::accent(ui), violet(ui), ui::muted(ui).gamma_multiply(0.7)]
+    [ui::accent(ui), teal(ui), ui::muted(ui).gamma_multiply(0.7)]
+}
+
+/// The colour of a bar the plug alone filled: the PC was off, only standby.
+fn standby_color(ui: &egui::Ui) -> Color32 {
+    ui::muted(ui)
+}
+
+/// A bar of standby: the Hardware Monitor did not run at all, only the plug's counter grew.
+fn standby(bar: &Bar) -> bool {
+    bar.seconds <= 0.0 && bar.cpu_gpu <= 0.0 && bar.estimated <= 0.0 && bar.rest > 0.0
 }
 
 /// What the axis counts in: Wh / kWh, or money.
@@ -317,7 +327,14 @@ impl PowerView {
             items.push((cg, t!("power.legend.cpu_gpu"), 1));
             items.push((rest, t!("power.legend.rest_line"), 1));
         } else {
-            for (value, color, id) in [(sum(|b| b.cpu_gpu), cg, "power.legend.cpu_gpu"), (sum(|b| b.rest), rest, "power.legend.rest"), (sum(|b| b.estimated), guessed, "power.legend.estimated")] {
+            let rest_on = |b: &Bar| if standby(b) { 0.0 } else { b.rest };
+            let standby_sum = |b: &Bar| if standby(b) { b.rest } else { 0.0 };
+            for (value, color, id) in [
+                (sum(|b| b.cpu_gpu), cg, "power.legend.cpu_gpu"),
+                (sum(rest_on), rest, "power.legend.rest"),
+                (sum(|b| b.estimated), guessed, "power.legend.estimated"),
+                (sum(standby_sum), standby_color(ui), "power.legend.standby"),
+            ] {
                 if value > 0.0 {
                     items.push((color, t!(id), 0));
                 }
@@ -461,7 +478,8 @@ impl PowerView {
                     let y0 = y_of(axis.value(below + wh)).min(y1 - 1.0);
                     below += wh;
                     let round = if Some(k) == topmost && !(i == count - 1 && expected > 0.0) { radius } else { 0 };
-                    let color = if hover == Some(i) { colors[k] } else { shade(colors[k], 0.78) };
+                    let color = if k == 1 && standby(bar) { standby_color(ui) } else { colors[k] };
+                    let color = if hover == Some(i) { color } else { shade(color, 0.78) };
                     painter.rect_filled(egui::Rect::from_min_max(egui::pos2(x0, y0), egui::pos2(x1, y1)), CornerRadius { nw: round, ne: round, sw: 0, se: 0 }, color);
                 }
                 if i == highest && totals[i] > 0.0 {
@@ -496,6 +514,9 @@ impl PowerView {
         let total = bar.total();
         if total <= 0.0 {
             return Some(t!("power.bar.empty", period = period));
+        }
+        if self.view != "hour" && standby(bar) {
+            return Some(t!("power.bar.standby", period = period, energy = energy::fmt_energy(total, unit), cost = cost(total)));
         }
         if self.view == "hour" {
             // Per minute: its average power; the running one at its pace.
