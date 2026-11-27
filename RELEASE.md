@@ -14,6 +14,8 @@ The monitor itself runs without admin rights.
 - **The power logs survive a power cut:** a log is only put in place once it is really on the disk, so there is
   always a complete one. A log that still cannot be read is no longer overwritten – it is put aside as
   `….broken-<time>.json` and `log.txt` says so.
+- **Power tab:** "everything else at the plug" is teal now. Days and hours when the PC was off show the plug's
+  standby in light grey, with their own legend entry and hover text.
 
 ## New in 1.0.2
 
